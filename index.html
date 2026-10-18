@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b2926">
+<title>Latihan Go</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23C8955F'/%3E%3Ccircle cx='11' cy='16' r='7' fill='%23111'/%3E%3Ccircle cx='21' cy='16' r='7' fill='%23fff' stroke='%23888' stroke-width='.6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --wood-1:#D2A06A; --wood-2:#B07A42; --line:#4E3219; --ink:#1C1712;
+  --seal:#B3412B; --paper:#EFE6D3; --stone-b1:#3A3A3A; --stone-b2:#050505;
+  --stone-w1:#FFFFFF; --stone-w2:#D6CFBF; --panel:#F6EFDF; --panel-2:#EFE6D3; --panel-line:#D8C9A8;
+  --text:#2A2118; --muted:#7A6A54; --ok:#4C6B4F; --warn:#B3412B; --good:#2E8B57;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#16120D; --panel:#201A13; --panel-2:#1A150F; --panel-line:#3A2F22; --text:#EEE4D2; --muted:#A09078; --ink:#EEE4D2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#16120D; --panel:#201A13; --panel-2:#1A150F; --panel-line:#3A2F22; --text:#EEE4D2; --muted:#A09078; --ink:#EEE4D2;
+  color-scheme: dark;
+}
+*{box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  margin:0; background:var(--paper); color:var(--text); font-family:var(--sans); font-size:14px;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.wrap{max-width:1040px;margin:0 auto;padding:18px 16px 48px;}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+h1{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-size:clamp(24px,4.5vw,32px);margin:0;font-weight:600;letter-spacing:.01em;}
+h1 em{font-style:normal;color:var(--seal);}
+.sub{color:var(--muted);font-size:13px;margin-top:2px;}
+.layout{display:grid;grid-template-columns:1fr;gap:14px;}
+@media(min-width:860px){.layout{grid-template-columns:minmax(0,1fr) 310px;align-items:start;}}
+
+.card{background:var(--panel);border:1px solid var(--panel-line);border-radius:8px;}
+.board-card{padding:12px;}
+#boardSvg{display:block;width:min(100%,80vh);height:auto;margin:0 auto;touch-action:manipulation;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.28);}
+
+.pbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.pl{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;border-radius:999px;border:1px solid var(--panel-line);background:var(--panel-2);font-size:13px;transition:box-shadow .15s,border-color .15s;}
+.pl.on{border-color:var(--seal);box-shadow:0 0 0 2px color-mix(in srgb,var(--seal) 25%,transparent);}
+.pl .st{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.35);flex:none;}
+.pl .st.b{background:radial-gradient(circle at 35% 30%,var(--stone-b1),var(--stone-b2));}
+.pl .st.w{background:radial-gradient(circle at 35% 30%,var(--stone-w1),var(--stone-w2));}
+.pl small{color:var(--muted);font-size:12px;}
+.spacer{flex:1;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--panel-line);background:var(--panel);color:var(--text);font-size:12px;white-space:nowrap;}
+.chip.live{border-color:var(--seal);color:var(--seal);}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.chip.live .dot{animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{50%{opacity:.25}}
+.boardmeta{display:flex;justify-content:space-between;gap:8px;margin:8px 2px 0;color:var(--muted);font-size:12px;min-height:18px;}
+.msg{margin:8px 2px 0;min-height:20px;font-size:13px;color:var(--seal);line-height:1.4;}
+
+.tabs{display:flex;border-bottom:1px solid var(--panel-line);}
+.tab{flex:1;border:0;border-bottom:2px solid transparent;border-radius:8px 8px 0 0;background:transparent;padding:11px 6px;font-size:13px;color:var(--muted);cursor:pointer;font-weight:500;}
+.tab:hover:not(:disabled){background:var(--panel-2);}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--seal);}
+.tab:disabled{opacity:.4;cursor:default;}
+.tab .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--panel-line);font-size:11px;color:var(--text);}
+.pane{padding:14px;}
+.pane[hidden]{display:none;}
+
+.stat{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:4px 0;}
+.stat b{color:var(--text);font-weight:600;}
+.label-sm{font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px;}
+
+.scorebox{margin:12px 0 0;padding:12px;border-radius:6px;border:1px solid var(--panel-line);background:var(--paper);}
+.scorebox[hidden]{display:none;}
+.scorebox table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
+.scorebox th{font-weight:500;color:var(--muted);text-align:right;padding:2px 0 6px;font-size:12px;}
+.scorebox th:first-child,.scorebox td:first-child{text-align:left;}
+.scorebox td{text-align:right;padding:3px 0;}
+.scorebox tr.total td{border-top:1px solid var(--panel-line);font-weight:700;padding-top:6px;}
+.verdict{margin-top:10px;font-size:15px;font-weight:600;line-height:1.35;}
+.hint{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.4;}
+
+button{font-family:inherit;font-size:13px;padding:9px 12px;border-radius:6px;border:1px solid var(--panel-line);background:transparent;color:var(--text);cursor:pointer;transition:background .15s,color .15s,opacity .15s;}
+button:hover:not(:disabled){background:var(--panel-line);}
+button:focus-visible,.switch input:focus-visible + .slider,input[type=range]:focus-visible{outline:2px solid var(--seal);outline-offset:2px;}
+button.primary{background:var(--seal);border-color:var(--seal);color:#fff;}
+button.primary:hover:not(:disabled){opacity:.9;background:var(--seal);}
+button.danger{color:var(--warn);}
+button.danger.arm{background:var(--warn);color:#fff;border-color:var(--warn);}
+button.sm{padding:5px 9px;font-size:12px;}
+button:disabled{opacity:.4;cursor:default;}
+.controls{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.row2{display:flex;gap:8px;}
+.row2 > *{flex:1;}
+.seg{display:flex;gap:6px;}
+.seg button{flex:1;padding:8px 6px;}
+.seg button.active{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0 0;}
+.toggle label{font-size:13px;}
+.switch{position:relative;width:38px;height:22px;flex:none;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.slider{position:absolute;inset:0;background:var(--panel-line);border-radius:22px;cursor:pointer;transition:.15s;}
+.slider:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--panel);border-radius:50%;transition:.15s;}
+.switch input:checked + .slider{background:var(--ok);}
+.switch input:checked + .slider:before{transform:translateX(16px);}
+
+/* riwayat */
+.hist-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.hist-head b{font-size:13px;}
+.glist{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;}
+.gitem{border:1px solid var(--panel-line);border-radius:8px;padding:10px;background:var(--panel-2);}
+.gitem .t{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:13px;}
+.gitem .t span:last-child{font-weight:400;color:var(--muted);font-size:12px;}
+.gitem .r{margin:4px 0 8px;font-size:12px;color:var(--muted);line-height:1.45;}
+.gitem .r b{color:var(--text);font-weight:600;}
+.gitem .a{display:flex;gap:6px;}
+.gitem .a button{flex:1;}
+.badge{display:inline-block;padding:0 6px;border-radius:9px;background:var(--panel-line);font-size:11px;color:var(--text);margin-left:4px;}
+.empty{padding:22px 8px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;}
+.note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.45;}
+
+/* analisa */
+.rv-title{font-weight:600;font-size:14px;margin:0 0 2px;}
+.rv-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.nav button{padding:8px 0;font-size:15px;}
+input[type=range]{width:100%;margin:12px 0 6px;accent-color:var(--seal);}
+.rv-pos{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
+.rv-info{margin:12px 0;padding:10px 12px;border-radius:6px;border:1px solid var(--panel-line);background:var(--paper);font-size:13px;line-height:1.6;}
+.rv-info b{font-weight:600;}
+.bar{height:8px;border-radius:4px;background:#fff;border:1px solid var(--panel-line);overflow:hidden;margin-top:4px;}
+.bar i{display:block;height:100%;background:#111;}
+#graph{display:block;width:100%;height:auto;margin-top:6px;background:var(--paper);border:1px solid var(--panel-line);border-radius:6px;cursor:pointer;}
+.prog{height:4px;border-radius:2px;background:var(--panel-line);margin-top:8px;overflow:hidden;}
+.prog i{display:block;height:100%;background:var(--seal);width:0;transition:width .2s;}
+.mlist{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.mlist button{display:flex;justify-content:space-between;text-align:left;padding:6px 8px;font-size:12px;}
+.mlist .loss{color:var(--warn);font-weight:600;}
+.checks{display:flex;flex-direction:column;gap:2px;margin:10px 0 4px;}
+.checks label{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer;}
+
+footer{color:var(--muted);font-size:12px;margin-top:18px;line-height:1.6;}
+footer b{color:var(--text);font-weight:600;}
+footer ul{margin:6px 0 0;padding-left:18px;}
+summary{cursor:pointer;padding:4px 0;color:var(--text);}
+footer details p{margin:6px 0 0;max-width:70ch;}
+.glist{padding-right:2px;}
+@media(min-width:860px){.board-card{position:sticky;top:12px;}}
+@media(max-width:859px){
+  .wrap{padding:12px 10px 40px;}
+  button{min-height:42px;} button.sm{min-height:36px;} .tab{min-height:46px;}
+  .pl{padding:4px 10px 4px 6px;} #boardSvg{width:100%;}
+}
+@media(prefers-reduced-motion:reduce){.chip.live .dot{animation:none;} *{transition:none!important;}}
+
+/* ===== Tema baru: papan ala chess.com + tombol 3D datar ala Ketchapp ===== */
+:root{--paper:#e9ebe6;--panel:#fff;--panel-2:#f2f3ee;--panel-line:#dcded5;--text:#262421;--muted:#6a6963;--ink:#262421;
+ --seal:#0d7a6c;--warn:#d93a2b;--accent:#1a9c8a;--accent-edge:#11705f;--btn:#e6e7e0;--btn-edge:#c9cbc0;--yellow:#f6c32e;
+ --wood-1:#ecc48c;--wood-2:#e0b273;--line:#3b2a17;--ok:#1a9c8a;--sans:"Nunito","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#2b2926;--panel:#363330;--panel-2:#2a2825;--panel-line:#45423e;--text:#fff;--muted:#a9a8a3;--ink:#fff;--seal:#4fd1bd;--warn:#ff6b5b;--btn:#4a4743;--btn-edge:#2d2b28;}}
+:root[data-theme="dark"]{--paper:#2b2926;--panel:#363330;--panel-2:#2a2825;--panel-line:#45423e;--text:#fff;--muted:#a9a8a3;--ink:#fff;--seal:#4fd1bd;--warn:#ff6b5b;--btn:#4a4743;--btn-edge:#2d2b28;}
+.wrap{max-width:1100px;} .layout{gap:16px;}
+@media(min-width:860px){.layout{grid-template-columns:minmax(0,1fr) 340px;}.bcol{position:sticky;top:12px;}}
+h1{display:flex;align-items:center;gap:10px;font-family:var(--sans);font-weight:800;letter-spacing:-.01em;}
+.card{border:0;border-radius:14px;box-shadow:0 5px 0 rgba(0,0,0,.14);}
+.bcol{display:flex;flex-direction:column;gap:10px;width:min(100%,78vh);margin:0 auto;}
+#boardSvg{order:2;width:100%;margin:0;border-radius:12px;box-shadow:0 6px 0 rgba(0,0,0,.2);}
+#plW{order:1;} #plB{order:3;} .boardmeta{order:4;} .bcol .msg{order:5;}
+.bcol.flip #plB{order:1;} .bcol.flip #plW{order:3;}
+.pl{display:flex;align-items:center;gap:12px;padding:8px 12px;border:0;border-radius:12px;background:var(--panel);box-shadow:0 3px 0 rgba(0,0,0,.14);}
+.pl.on{box-shadow:inset 5px 0 0 var(--accent),0 3px 0 rgba(0,0,0,.14);}
+.pl .st{width:38px;height:38px;border:0;border-radius:10px;background:var(--btn);display:grid;place-items:center;}
+.pl .st::after{content:"";width:24px;height:24px;border-radius:50%;}
+.pl .st.b,.pl .st.w{background:var(--btn);}
+.pl .st.b::after{background:radial-gradient(circle at 35% 30%,var(--stone-b1),var(--stone-b2));}
+.pl .st.w::after{background:radial-gradient(circle at 35% 30%,var(--stone-w1),var(--stone-w2));box-shadow:0 0 0 1px rgba(0,0,0,.25);}
+.pl .who{display:flex;flex-direction:column;line-height:1.25;} .pl .who b{font-size:15px;font-weight:800;}
+.pl .turn{display:none;margin-left:auto;background:var(--accent);color:#fff;font-weight:800;font-size:12px;padding:3px 10px;border-radius:999px;}
+.pl.on .turn{display:inline-block;}
+.boardmeta{align-items:center;margin:2px 2px 0;gap:10px;} .boardmeta #metaLeft{flex:1;}
+.chip{border:0;background:var(--panel);font-weight:700;padding:5px 12px;box-shadow:0 2px 0 rgba(0,0,0,.14);} .chip.live{color:var(--seal);}
+.msg{color:var(--text);font-weight:600;}
+button{border:0;border-radius:10px;background:var(--btn);box-shadow:0 4px 0 var(--btn-edge);font-weight:700;padding:11px 14px;transition:transform .08s,box-shadow .08s,filter .15s;}
+button:hover:not(:disabled){background:var(--btn);filter:brightness(1.07);}
+button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--btn-edge);}
+button.primary{background:var(--accent);box-shadow:0 5px 0 var(--accent-edge);color:#fff;font-size:17px;font-weight:800;padding:14px;}
+button.primary:hover:not(:disabled){background:var(--accent);opacity:1;filter:brightness(1.08);}
+button.primary:active:not(:disabled){box-shadow:0 2px 0 var(--accent-edge);}
+button.sm{padding:6px 10px;box-shadow:0 3px 0 var(--btn-edge);}
+button.danger{background:transparent;box-shadow:none;border:2px solid var(--warn);color:var(--warn);}
+button.danger:active:not(:disabled){transform:none;box-shadow:none;} button.danger.arm{background:var(--warn);color:#fff;}
+button:disabled{opacity:.45;box-shadow:none;}
+.seg button.active{background:var(--accent);color:#fff;border:0;box-shadow:0 4px 0 var(--accent-edge);}
+.tab,.tab:hover:not(:disabled),.tab:active:not(:disabled){background:transparent;box-shadow:none;transform:none;filter:none;border-radius:10px 10px 0 0;font-weight:800;border-bottom-width:3px;}
+.tab[aria-selected="true"]{border-bottom-color:var(--accent);}
+.tab .n,.badge{background:var(--yellow);color:#262421;font-weight:800;}
+.switch input:checked + .slider{background:var(--accent);} input[type=checkbox]{accent-color:var(--accent);}
+.scorebox,.gitem,.rv-info{border:0;border-radius:12px;background:var(--panel-2);} #graph{border:0;border-radius:12px;background:var(--panel-2);}
+.verdict{font-size:17px;font-weight:800;} .prog i{background:var(--accent);}
+.moves{display:grid;grid-template-columns:34px 1fr 1fr;gap:3px 8px;max-height:150px;overflow:auto;padding:8px 10px;border-radius:12px;background:var(--panel-2);font-size:13px;font-variant-numeric:tabular-nums;}
+.moves .n{color:var(--muted);} .moves .m{padding:1px 6px;border-radius:5px;} .moves .m.last{background:var(--accent);color:#fff;font-weight:700;}
+#home{min-height:100vh;display:grid;place-items:center;padding:24px 16px;} #home[hidden]{display:none;}
+.home-in{width:min(100%,760px);} .home-hero{text-align:center;margin-bottom:26px;}
+.home-hero h1{justify-content:center;font-size:clamp(32px,7vw,48px);margin:0 0 8px;} .home-hero p{margin:0;color:var(--muted);font-size:16px;}
+.modes{display:grid;gap:16px;grid-template-columns:1fr;} @media(min-width:700px){.modes{grid-template-columns:1fr 1fr;}}
+.mode,.mode.primary{display:grid;grid-template-columns:56px 1fr;gap:2px 14px;align-items:center;text-align:left;padding:18px;border-radius:16px;font-size:14px;font-weight:500;min-height:104px;}
+.mode b{font-size:19px;font-weight:800;} .mode span{font-size:13px;opacity:.85;line-height:1.35;}
+.mode .mi{grid-row:1/4;width:56px;height:56px;padding:10px;border-radius:14px;background:color-mix(in srgb,currentColor 14%,transparent);}
+.mode .soon{grid-column:2;justify-self:start;font-style:normal;background:var(--yellow);color:#262421;font-weight:800;font-size:11px;padding:2px 8px;border-radius:999px;}
+.hbtns{display:flex;gap:8px;}
+input[type=text]{width:100%;font:inherit;font-weight:700;padding:10px 12px;border:2px solid var(--panel-line);border-radius:10px;background:var(--panel-2);color:var(--text);}
+input[type=text]:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+.prof-row{display:flex;gap:12px;align-items:flex-end;margin-top:14px;} .prof-row > div{flex:1;min-width:0;}
+.prof-row label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;}
+.av{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:20px;background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-edge);}
+.av.c{background:var(--yellow);color:#262421;box-shadow:0 3px 0 #c79b12;}
+.pl .who b{max-width:11em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tab{padding:11px 2px;}
+.prof-head{display:flex;gap:12px;align-items:center;} .prof-head b{font-size:18px;font-weight:800;}
+.charbadge{display:inline-block;margin-top:4px;background:var(--yellow);color:#262421;font-weight:800;font-size:13px;padding:3px 12px;border-radius:999px;}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.tile{background:var(--panel-2);border-radius:12px;padding:10px 12px;} .tile b{display:block;font-size:21px;font-weight:800;} .tile span{font-size:12px;color:var(--muted);}
+.plist{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.5;} .plist li+li{margin-top:4px;}
+.meter{display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-top:8px;font-size:12px;} .meter b{font-weight:700;}
+.mbar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--panel-line);overflow:hidden;} .mbar i{display:block;height:100%;background:var(--accent);}
+#nameBox{margin-top:18px;}
+</style>
+</head>
+<body>
+<section id="home">
+  <div class="home-in">
+    <div class="home-hero">
+      <h1><svg width="52" height="52" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1a9c8a"/><circle cx="11.5" cy="16" r="7" fill="#1c1b19"/><circle cx="20.5" cy="16" r="7" fill="#fff"/></svg>Latihan Go</h1>
+      <p>Berlatih Go melawan KataGo, simpan permainanmu, lalu analisa langkahnya.</p>
+      <button class="sm" id="homeProfile" style="margin-top:16px"></button>
+    </div>
+    <div class="modes">
+      <button class="mode primary" data-mode="ai"><svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="24" r="9" fill="currentColor"/><circle cx="31" cy="24" r="9" fill="none" stroke="currentColor" stroke-width="3"/></svg><b>Lawan komputer</b><span>Pilih ukuran papan dan warna, lalu main melawan KataGo.</span></button>
+      <button class="mode" data-mode="online" disabled><svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 24h28M24 10c-7 8-7 20 0 28M24 10c7 8 7 20 0 28" fill="none" stroke="currentColor" stroke-width="2.5"/></svg><b>Main online</b><span>Butuh server untuk mempertemukan dua pemain.</span><i class="soon">Belum tersedia</i></button>
+      <button class="mode" data-mode="analyze"><svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="26" width="7" height="13" rx="2" fill="currentColor"/><rect x="20.5" y="17" width="7" height="22" rx="2" fill="currentColor"/><rect x="32" y="8" width="7" height="31" rx="2" fill="currentColor"/></svg><b>Analisa game</b><span id="homeHist">Buka game tersimpan.</span></button>
+      <button class="mode" data-mode="practice"><svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="24" r="6" fill="currentColor"/></svg><b>Posisi custom</b><span>Papan bebas tanpa lawan untuk menyusun posisi sendiri, dengan tombol saran langkah dari model.</span></button>
+    </div>
+  </div>
+</section>
+<div class="wrap" id="app" hidden>
+  <header>
+    <div>
+      <h1><svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1a9c8a"/><circle cx="11.5" cy="16" r="7" fill="#1c1b19"/><circle cx="20.5" cy="16" r="7" fill="#fff"/></svg>Latihan Go</h1>
+      <div class="sub">Berlatih, simpan permainan, lalu analisa langkahnya.</div>
+    </div>
+    <div class="hbtns"><button id="homeBtn" class="sm">Menu</button><button id="themeBtn" class="sm" title="Ganti tema">Tema: Auto</button></div>
+  </header>
+
+  <div class="layout">
+    <div class="bcol" id="bcol">
+      <div class="pl" id="plW"><span class="st w"></span><div class="who"><b id="nmW">Putih</b><small id="capWtxt">tangkap 0</small></div><span class="turn">Giliran</span></div>
+      <svg id="boardSvg" viewBox="0 0 560 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Papan Go"></svg>
+      <div class="pl" id="plB"><span class="st b"></span><div class="who"><b id="nmB">Hitam</b><small id="capBtxt">tangkap 0</small></div><span class="turn">Giliran</span></div>
+      <div class="boardmeta"><span id="metaLeft"></span><span id="metaRight"></span><span class="chip" id="statusChip"><span class="dot"></span><span id="statusChipText">Siap</span></span></div>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabPlay" aria-controls="panePlay" aria-selected="true">Main</button>
+        <button class="tab" role="tab" id="tabHist" aria-controls="paneHist" aria-selected="false">Riwayat<span class="n" id="histCount">0</span></button>
+        <button class="tab" role="tab" id="tabRev" aria-controls="paneRev" aria-selected="false" disabled>Analisa</button>
+        <button class="tab" role="tab" id="tabProf" aria-selected="false" aria-controls="paneProf">Profil</button>
+      </div>
+
+      <!-- ====== MAIN ====== -->
+      <div class="pane" role="tabpanel" id="panePlay">
+        <div class="stat"><span>Langkah</span><b id="moveNo">0</b></div>
+        <div class="label-sm">Daftar langkah</div>
+        <div class="moves" id="moveList"></div>
+        <div class="rv-info" id="hintInfo" hidden></div>
+
+        <div class="scorebox" id="scoreBox" hidden>
+          <table>
+            <thead><tr><th></th><th>Hitam</th><th>Putih</th></tr></thead>
+            <tbody>
+              <tr><td>Batu hidup</td><td id="sbStonesB">0</td><td id="sbStonesW">0</td></tr>
+              <tr><td>Wilayah</td><td id="sbTerrB">0</td><td id="sbTerrW">0</td></tr>
+              <tr><td>Komi</td><td>&ndash;</td><td id="sbKomi">7,5</td></tr>
+              <tr class="total"><td>Total</td><td id="sbTotB">0</td><td id="sbTotW">0</td></tr>
+            </tbody>
+          </table>
+          <div class="verdict" id="verdict"></div>
+          <div class="hint" id="scoreHint"></div>
+        </div>
+
+        <div class="label-sm">Ukuran papan</div>
+        <div class="seg" id="sizeGroup">
+          <button data-size="9">9×9</button>
+          <button data-size="13">13×13</button>
+          <button data-size="19">19×19</button>
+        </div>
+        <div class="toggle" id="aiRow">
+          <label for="aiToggle">Lawan komputer</label>
+          <span class="switch"><input type="checkbox" id="aiToggle" checked><span class="slider"></span></span>
+        </div>
+        <div id="sideRow">
+          <div class="label-sm">Warna kamu</div>
+          <div class="seg" id="sideGroup"><button data-side="1">Hitam (jalan dulu)</button><button data-side="2">Putih</button></div>
+        </div>
+
+        <div class="controls">
+          <button id="hintBtn" hidden>Beri saran</button>
+          <div class="row2"><button id="passBtn">Lewati</button><button id="undoBtn">Batal</button></div>
+          <button id="scoreBtn" class="primary">Hitung skor</button>
+          <div class="row2"><button id="resignBtn" class="danger">Menyerah</button><button id="resetBtn">Papan baru</button></div>
+          <button id="saveBtn">Simpan &amp; analisa game ini</button>
+        </div>
+        <div class="note" id="saveNote">Permainan otomatis tersimpan di browser ini dan dilanjutkan saat halaman dibuka lagi.</div>
+      </div>
+
+      <!-- ====== RIWAYAT ====== -->
+      <div class="pane" role="tabpanel" id="paneHist" hidden>
+        <div class="hist-head"><b id="histTitle">Game tersimpan</b><button id="clearAllBtn" class="danger sm">Hapus semua</button></div>
+        <div class="glist" id="glist"></div>
+        <div class="note">Game selesai, menyerah, atau ditinggalkan di tengah jalan (&ge; 6 langkah) disimpan otomatis di browser ini. Data tidak dikirim ke mana pun dan bisa dihapus kapan saja.</div>
+      </div>
+
+      <!-- ====== ANALISA ====== -->
+      <div class="pane" role="tabpanel" id="paneProf" hidden>
+        <div class="prof-head"><span class="av" id="avHead" aria-hidden="true">K</span><div><b id="profName">Kamu</b><div><span class="charbadge" id="profChar"></span></div></div></div>
+        <div class="tiles" id="profTiles"></div>
+        <div class="label-sm">Karakter bermain</div>
+        <div class="rv-info" id="profStyle"></div>
+        <div class="label-sm">Kelebihan</div><ul class="plist" id="profGood"></ul>
+        <div class="label-sm">Kekurangan</div><ul class="plist" id="profBad"></ul>
+        <div class="label-sm">Yang perlu ditingkatkan</div><ul class="plist" id="profTips"></ul>
+        <div class="label-sm">Kerugian per fase permainan</div><div id="profPhase"></div>
+        <div class="controls"><button id="profGoHist" class="primary">Analisa game</button><button id="profGoPractice">Posisi custom</button></div>
+        <details id="nameBox"><summary><b>Ubah nama</b></summary>
+          <div class="prof-row"><span class="av" id="avMe" aria-hidden="true">K</span><div><label for="inName">Namamu</label><input type="text" id="inName" maxlength="20" autocomplete="nickname" placeholder="Kamu"></div></div>
+          <div class="prof-row"><span class="av c" id="avAi" aria-hidden="true">K</span><div><label for="inAi">Nama komputer</label><input type="text" id="inAi" maxlength="20" placeholder="Komputer"></div></div>
+          <div class="controls"><button id="profSave" class="primary">Simpan</button><button id="profReset">Kembalikan nama awal</button></div>
+          <div class="note" id="profNote">Nama tampil di bar pemain, riwayat, analisa, dan berkas SGF. Maksimal 20 karakter.</div>
+        </details>
+      </div>
+      <div class="pane" role="tabpanel" id="paneRev" hidden>
+        <p class="rv-title" id="rvTitle">&ndash;</p>
+        <div class="rv-sub" id="rvSub"></div>
+
+        <div class="nav">
+          <button id="rvFirst" title="Awal (Home)">&#x23EE;</button>
+          <button id="rvPrev" title="Mundur (&larr;)">&#9664;</button>
+          <button id="rvNext" title="Maju (&rarr;)">&#9654;</button>
+          <button id="rvLast" title="Akhir (End)">&#x23ED;</button>
+        </div>
+        <input type="range" id="rvSlider" min="0" max="0" value="0" aria-label="Posisi langkah">
+        <div class="rv-pos"><span id="rvPosL">Langkah 0 / 0</span><span id="rvPosR"></span></div>
+
+        <div class="rv-info" id="rvInfo"></div>
+
+        <div class="row2">
+          <button id="rvOne">Analisa posisi ini</button>
+          <button id="rvAll" class="primary">Analisa semua</button>
+        </div>
+        <div class="prog" id="rvProg" hidden><i id="rvProgBar"></i></div>
+
+        <div class="checks">
+          <label><input type="checkbox" id="rvAuto"> Analisa otomatis saat berpindah langkah</label>
+          <label><input type="checkbox" id="rvOwn" checked> Tampilkan perkiraan wilayah</label>
+          <label><input type="checkbox" id="rvCands" checked> Tampilkan saran langkah</label>
+        </div>
+
+        <div class="label-sm">Grafik keunggulan Hitam</div>
+        <svg id="graph" viewBox="0 0 300 90" role="img" aria-label="Grafik keunggulan"></svg>
+        <div class="label-sm">Kesalahan terbesar (perkiraan)</div>
+        <div class="mlist" id="mlist"></div>
+
+        <div class="controls">
+          <button id="rvPlayFrom" class="primary">Main dari posisi ini</button>
+          <div class="row2"><button id="rvSgf">Unduh SGF</button><button id="rvDel" class="danger">Hapus game</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer><details><summary><b>Aturan dan cara kerja</b></summary><p>
+    <b>Game selesai otomatis</b> bila kedua pemain lewati berturut-turut (komputer ikut lewati hanya jika papan sudah tuntas dan ia unggul), pemain tidak punya langkah legal, ada yang menyerah, atau batas langkah (3 &times; jumlah titik) tercapai.
+    Skor memakai aturan area (batu + wilayah) dengan komi 7,5; batu mati diperkirakan otomatis dan bisa dikoreksi dengan mengklik kelompoknya.
+    Komputer dan analisa memakai model KataGo di semua ukuran papan (peluang menang, saran langkah, wilayah); bila kata.js tidak termuat, dipakai simulasi acak.
+  </p></details></footer>
+</div>
+
+<script>
+/* ===================================================================
+   GoRules — mesin aturan Go, murni (stateless).
+=================================================================== */
+window.GoRules = (function () {
+  function neighbors(r, c, size) {
+    const n = [];
+    if (r > 0) n.push([r - 1, c]);
+    if (r < size - 1) n.push([r + 1, c]);
+    if (c > 0) n.push([r, c - 1]);
+    if (c < size - 1) n.push([r, c + 1]);
+    return n;
+  }
+  function groupOf(r, c, board, size) {
+    const color = board[r][c];
+    const seen = new Set();
+    const stack = [[r, c]];
+    const group = [];
+    while (stack.length) {
+      const [cr, cc] = stack.pop();
+      const key = cr + '_' + cc;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      group.push([cr, cc]);
+      neighbors(cr, cc, size).forEach(([nr, nc]) => {
+        if (board[nr][nc] === color && !seen.has(nr + '_' + nc)) stack.push([nr, nc]);
+      });
+    }
+    return group;
+  }
+  function liberties(group, board, size) {
+    const libs = new Set();
+    group.forEach(([r, c]) =>
+      neighbors(r, c, size).forEach(([nr, nc]) => { if (board[nr][nc] === 0) libs.add(nr + '_' + nc); })
+    );
+    return libs.size;
+  }
+  function cloneBoard(board) { return board.map((row) => row.slice()); }
+  function boardKey(board) { return board.map((row) => row.join('')).join('|'); }
+
+  // Mencoba satu langkah tanpa mengubah papan asli.
+  function simulateMove(board, size, r, c, color, koPoint) {
+    if (board[r][c] !== 0) return { ok: false, reason: 'Titik itu sudah terisi.' };
+    const trial = cloneBoard(board);
+    trial[r][c] = color;
+    const opp = color === 1 ? 2 : 1;
+    let captured = [];
+    neighbors(r, c, size).forEach(([nr, nc]) => {
+      if (trial[nr][nc] === opp) {
+        const g = groupOf(nr, nc, trial, size);
+        if (liberties(g, trial, size) === 0) captured.push(...g);
+      }
+    });
+    captured.forEach(([cr, cc]) => (trial[cr][cc] = 0));
+    const ownGroup = groupOf(r, c, trial, size);
+    if (liberties(ownGroup, trial, size) === 0) {
+      return { ok: false, reason: 'Langkah ini bunuh diri — kelompok batu tidak punya ruang kosong.' };
+    }
+    if (koPoint && boardKey(trial) === koPoint) {
+      return { ok: false, reason: 'Dilarang oleh aturan ko — akan mengulang posisi sebelumnya.' };
+    }
+    return { ok: true, board: trial, captured };
+  }
+  return { neighbors, groupOf, liberties, cloneBoard, boardKey, simulateMove };
+})();
+</script>
+
+<script>
+/*
+ * bot.js — lawan komputer untuk Latihan Go.
+ *
+ * Dua mesin digabung:
+ *
+ *  1. NEURAL (19x19 saja) — memakai model KataGo asli dari proyek
+ *     "kata-model-js" (b10c128, dikonversi ke format TensorFlow.js oleh
+ *     Yuji ICHIKAWA dari jaringan KataGo milik lightvector). Model ini
+ *     hanya dilatih untuk papan 19x19, jadi hanya dipakai pada ukuran
+ *     itu. TensorFlow.js dan bobot model ada di kata.js (satu file,
+ *     dimuat otomatis saat pertama kali main 19x19).
+ *
+ *     Encoding fitur di bawah ini mengikuti js/model.js dari proyek
+ *     tersebut: channel batu-sendiri/lawan dan liberty (1/2/3) dihitung
+ *     dari papan lewat window.GoRules; channel ko, 5 langkah terakhir,
+ *     dan flag "lewati" pada fitur global diisi dari `ctx` yang dikirim
+ *     UI (ikut dikembalikan saat undo, jadi tidak pernah meleset).
+ *
+ *  2. MCTS (ukuran papan lain, atau cadangan bila model gagal dimuat/
+ *     jalan — mis. dibuka langsung dari file tanpa server, atau
+ *     perangkat tanpa dukungan yang cukup) — pencarian Monte Carlo murni
+ *     JavaScript, sama seperti versi sebelumnya: tidak butuh model atau
+ *     jaringan sama sekali.
+ *
+ * Antarmuka tidak berubah namanya, tapi sekarang ASYNC karena inferensi
+ * model memang operasi asinkron:
+ *   await Bot.chooseMove(board, size, color, koPoint, ctx) -> {r,c} atau null
+ *   ctx (opsional) = { moves:[{color,r,c}|{color,pass:true}], koPos:{r,c}|null }
+ */
+const Bot = (function () {
+  // Urutan percobaan: file model di folder yang sama dengan index.html,
+  // lalu subfolder model/ (susunan asli kata-model-js).
+  const DEFAULT_KOMI = 7.5;
+  let modelPromise = null;
+  let modelFailed = false;
+
+  // ---------------------------------------------------------------
+  // Mesin 1: neural net (KataGo b10c128 via TensorFlow.js, 19x19)
+  // ---------------------------------------------------------------
+
+  // kata.js = TensorFlow.js + model KataGo (base64), dimuat sekali saat 19x19 pertama dimainkan.
+  function ensureTf() {
+    if (typeof tf !== 'undefined' && window.KATA_MODEL) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = './kata.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('kata.js tidak dapat dimuat'));
+      document.head.appendChild(s);
+    });
+  }
+
+  function loadModel() {
+    if (modelPromise) return modelPromise;
+    modelPromise = (async () => {
+      await ensureTf();
+      await tf.setBackend('cpu');
+      await tf.ready();
+      const m = window.KATA_MODEL;
+      const bin = atob(m.weights);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const artifacts = Object.assign({}, m.artifacts, { weightData: bytes.buffer });
+      window.KATA_MODEL = null; // lepaskan salinan base64 dari memori
+      return tf.loadGraphModel({ load: async () => artifacts });
+    })();
+    return modelPromise;
+  }
+
+  // Membangun tensor masukan 22 channel x 19x19, dan 19 channel global,
+  // persis urutan channel yang dipakai kata-model-js, dikurangi channel
+  // riwayat langkah & ko (lihat catatan di atas).
+  function buildFeatures(board, color, rules, ctx) {
+    const N = 19, CH = 22, S = board.length;
+    const bin = new Float32Array(N * N * CH);
+    for (let r = 0; r < S; r++) {
+      for (let c = 0; c < S; c++) {
+        const base = (r * N + c) * CH;
+        bin[base + 0] = 1.0; // selalu di dalam papan (model ini tidak dipakai untuk papan lebih kecil)
+        const v = board[r][c];
+        if (v === color) bin[base + 1] = 1.0;
+        else if (v !== 0) bin[base + 2] = 1.0;
+        if (v !== 0) {
+          const group = rules.groupOf(r, c, board, S);
+          const libs = rules.liberties(group, board, S);
+          if (libs === 1) bin[base + 3] = 1.0;
+          else if (libs === 2) bin[base + 4] = 1.0;
+          else if (libs === 3) bin[base + 5] = 1.0;
+        }
+      }
+    }
+    const glob = new Float32Array(19);
+
+    // Channel 6: titik larangan ko.
+    if (ctx && ctx.koPos) bin[(ctx.koPos.r * N + ctx.koPos.c) * CH + 6] = 1.0;
+
+    // Channel 9-13: 5 langkah terakhir (1 = lawan, 2 = kita, dst. bergantian);
+    // global 0-4 menandai kalau langkah itu "lewati". Berhenti bila urutan
+    // pemain tidak bergantian.
+    const moves = (ctx && ctx.moves) || [];
+    for (let i = 0; i < 5 && i < moves.length; i++) {
+      const mv = moves[moves.length - 1 - i];
+      const expected = i % 2 === 0 ? (color === 1 ? 2 : 1) : color;
+      if (mv.color !== expected) break;
+      if (mv.pass) glob[i] = 1.0;
+      else bin[(mv.r * N + mv.c) * CH + 9 + i] = 1.0;
+    }
+
+    // Komi dari sudut pandang pemain yang jalan: putih menerima +komi.
+    const selfKomi = color === 2 ? DEFAULT_KOMI : -DEFAULT_KOMI;
+    glob[5] = selfKomi / 20.0;
+    return { bin, glob };
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  async function neuralChooseMove(board, color, koPoint, rules, ctx) {
+    const model = await loadModel();
+    const { bin, glob } = buildFeatures(board, color, rules, ctx);
+
+    const inBin = tf.tensor(bin, [1, 361, 22], 'float32');
+    const inGlob = tf.tensor(glob, [1, 19], 'float32');
+    let outputs;
+    try {
+      outputs = await model.executeAsync({
+        'swa_model/bin_inputs': inBin,
+        'swa_model/global_inputs': inGlob,
+      });
+    } finally {
+      inBin.dispose(); inGlob.dispose();
+    }
+    const outList = Array.isArray(outputs) ? outputs : [outputs];
+
+    // Output kebijakan berbentuk [1, 2, 362]; baris pertama (362 nilai) adalah
+    // kebijakan langkah berikutnya, baris kedua kebijakan lawan — hanya yang
+    // pertama yang dipakai. Dicari lewat bentuknya, bukan urutan output.
+    let policyTensor = outList.find((t) => t.shape.length === 3 && t.shape[2] === 362);
+    if (!policyTensor) policyTensor = outList[1];
+    const flat = (await policyTensor.reshape([-1]).array()).slice(0, 362);
+    outList.forEach((t) => t.dispose());
+
+    const scored = flat.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v);
+
+    // Papan penuh-kosong pun tetap punya langkah; "lewati" (indeks 361) hanya
+    // diikuti bila lawan baru saja lewat dan itu pilihan teratas model.
+    const last = ctx && ctx.moves && ctx.moves[ctx.moves.length - 1];
+    if (scored[0].i === 361 && last && last.pass) return null;
+
+    const stoneCount = board.reduce((n, row) => n + row.filter((x) => x !== 0).length, 0);
+    const poolSize = stoneCount < 10 ? 4 : 1;
+    const legal = [];
+    for (const cand of scored) {
+      if (legal.length >= poolSize) break;
+      if (cand.i >= 361) continue;
+      const r = Math.floor(cand.i / 19), c = cand.i % 19, S = board.length;
+      if (r >= S || c >= S) continue;
+      if (isOwnEye(board, S, r, c, color, rules)) continue;
+      if (rules.simulateMove(board, S, r, c, color, koPoint).ok) legal.push({ r, c });
+    }
+    if (legal.length === 0) return null; // tidak ada langkah layak -> lewati
+    return stoneCount < 10 ? shuffle(legal)[0] : legal[0]; // variasi hanya di pembukaan
+  }
+
+  // ---------------------------------------------------------------
+  // Mesin 2: Monte Carlo Tree Search murni JS (cadangan / ukuran lain)
+  // ---------------------------------------------------------------
+
+  const C_UCT = 1.41421356;
+  const TIME_BUDGET_MS = { 9: 900, 13: 650, 19: 450 };
+  const MAX_SIMS = 3000;
+  const ROLLOUT_SAMPLES = 20;
+
+  function now() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()); }
+
+  function isOwnEye(board, size, r, c, color, rules) {
+    const nb = rules.neighbors(r, c, size);
+    for (const [nr, nc] of nb) if (board[nr][nc] !== color) return false;
+    const enemy = color === 1 ? 2 : 1;
+    const diag = [[r - 1, c - 1], [r - 1, c + 1], [r + 1, c - 1], [r + 1, c + 1]];
+    let diagEnemy = 0;
+    diag.forEach(([dr, dc]) => {
+      if (dr < 0 || dc < 0 || dr >= size || dc >= size) return;
+      if (board[dr][dc] === enemy) diagEnemy++;
+    });
+    const onEdge = (r === 0 || c === 0 || r === size - 1 || c === size - 1);
+    return diagEnemy <= (onEdge ? 0 : 1);
+  }
+
+  function legalMoves(board, size, color, koPoint, rules) {
+    const moves = [];
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (board[r][c] !== 0) continue;
+      if (isOwnEye(board, size, r, c, color, rules)) continue;
+      const sim = rules.simulateMove(board, size, r, c, color, koPoint);
+      if (sim.ok) moves.push({ r, c, sim });
+    }
+    moves.push(null);
+    return moves;
+  }
+
+  function samplePlayoutMove(board, size, color, koPoint, rules) {
+    const empties = [];
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) if (board[r][c] === 0) empties.push(r * size + c);
+    if (empties.length === 0) return null;
+    let fallback = null;
+    const tries = Math.min(empties.length, ROLLOUT_SAMPLES);
+    for (let i = 0; i < tries; i++) {
+      const j = i + Math.floor(Math.random() * (empties.length - i));
+      const tmp = empties[i]; empties[i] = empties[j]; empties[j] = tmp;
+      const idx = empties[i], r = (idx / size) | 0, c = idx % size;
+      if (isOwnEye(board, size, r, c, color, rules)) continue;
+      const sim = rules.simulateMove(board, size, r, c, color, koPoint);
+      if (!sim.ok) continue;
+      if (sim.captured.length > 0) return { r, c, sim };
+      if (!fallback) fallback = { r, c, sim };
+    }
+    return fallback;
+  }
+
+  function scoreDiff(board, size, rules) {
+    let areaB = 0, areaW = 0;
+    const seen = Array.from({ length: size }, () => Array(size).fill(false));
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (board[r][c] === 1) areaB++; else if (board[r][c] === 2) areaW++;
+    }
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (board[r][c] !== 0 || seen[r][c]) continue;
+      const stack = [[r, c]], region = [], borders = new Set();
+      seen[r][c] = true;
+      while (stack.length) {
+        const [cr, cc] = stack.pop(); region.push([cr, cc]);
+        rules.neighbors(cr, cc, size).forEach(([nr, nc]) => {
+          if (board[nr][nc] === 0 && !seen[nr][nc]) { seen[nr][nc] = true; stack.push([nr, nc]); }
+          else if (board[nr][nc] !== 0) borders.add(board[nr][nc]);
+        });
+      }
+      if (borders.size === 1) { if (borders.has(1)) areaB += region.length; else areaW += region.length; }
+    }
+    return areaB - areaW;
+  }
+
+  function rollout(board, size, toMove, koPoint, rules) {
+    let b = board, color = toMove, kp = koPoint, passes = 0;
+    const maxPlies = Math.min(size * size * 1.4, 200);
+    for (let i = 0; i < maxPlies && passes < 2; i++) {
+      const mv = samplePlayoutMove(b, size, color, kp, rules);
+      if (!mv) { passes++; color = color === 1 ? 2 : 1; continue; }
+      passes = 0;
+      const prevKey = rules.boardKey(b);
+      b = mv.sim.board;
+      kp = mv.sim.captured.length === 1 ? prevKey : null;
+      color = color === 1 ? 2 : 1;
+    }
+    return scoreDiff(b, size, rules);
+  }
+
+  function makeNode(board, koPoint, playerJustMoved, moveFromParent, parent) {
+    return { board, koPoint, playerJustMoved, moveFromParent, parent, children: [], visits: 0, wins: 0, untried: null };
+  }
+
+  function ensureExpanded(node, size, rules) {
+    if (node.untried === null) {
+      const toMove = node.playerJustMoved === 1 ? 2 : 1;
+      node.untried = legalMoves(node.board, size, toMove, node.koPoint, rules);
+    }
+  }
+
+  function selectChild(node) {
+    let best = null, bestScore = -Infinity;
+    for (const child of node.children) {
+      const exploit = child.wins / child.visits;
+      const explore = C_UCT * Math.sqrt(Math.log(node.visits) / child.visits);
+      const score = exploit + explore;
+      if (score > bestScore) { bestScore = score; best = child; }
+    }
+    return best;
+  }
+
+  function mctsChooseMove(board, size, color, koPoint, rules) {
+    const root = makeNode(board, koPoint, color === 1 ? 2 : 1, null, null);
+    ensureExpanded(root, size, rules);
+    if (root.untried.length === 1 && root.untried[0] === null) return null;
+
+    const budget = TIME_BUDGET_MS[size] || 600;
+    const start = now();
+    let sims = 0;
+
+    while (sims < MAX_SIMS && now() - start < budget) {
+      let node = root;
+      while (node.untried.length === 0 && node.children.length > 0) {
+        node = selectChild(node);
+        ensureExpanded(node, size, rules);
+      }
+      if (node.untried.length > 0) {
+        const idx = Math.floor(Math.random() * node.untried.length);
+        const mv = node.untried.splice(idx, 1)[0];
+        const toMove = node.playerJustMoved === 1 ? 2 : 1;
+        const childBoard = mv === null ? node.board : mv.sim.board;
+        const childKo = mv === null ? null : (mv.sim.captured.length === 1 ? rules.boardKey(node.board) : null);
+        const child = makeNode(childBoard, childKo, toMove, mv, node);
+        node.children.push(child);
+        node = child;
+      }
+      const toMoveAtLeaf = node.playerJustMoved === 1 ? 2 : 1;
+      const diff = rollout(node.board, size, toMoveAtLeaf, node.koPoint, rules);
+      sims++;
+      let n = node;
+      while (n) {
+        n.visits++;
+        n.wins += n.playerJustMoved === 1
+          ? (diff > 0 ? 1 : diff < 0 ? 0 : 0.5)
+          : (diff < 0 ? 1 : diff > 0 ? 0 : 0.5);
+        n = n.parent;
+      }
+    }
+
+    let best = null, bestVisits = -1;
+    for (const child of root.children) {
+      if (child.visits > bestVisits) { bestVisits = child.visits; best = child; }
+    }
+    if (!best || best.moveFromParent === null) return null;
+    return { r: best.moveFromParent.r, c: best.moveFromParent.c };
+  }
+
+  // ---------------------------------------------------------------
+  // Pemilih utama: neural di 19x19 bila tersedia, MCTS selain itu.
+  // ---------------------------------------------------------------
+
+  async function chooseMove(board, size, color, koPoint, ctx) {
+    const rules = window.GoRules;
+    if (!rules) throw new Error('GoRules tidak ditemukan — muat bot lewat index.html.');
+
+    if (size >= 5 && size <= 19 && typeof document !== 'undefined' && !modelFailed) {
+      try {
+        return await neuralChooseMove(board, color, koPoint, rules, ctx);
+      } catch (e) {
+        modelFailed = true; // jangan coba lagi tiap langkah bila sudah gagal sekali
+        console.warn('Model KataGo gagal dimuat/dijalankan, beralih ke MCTS cadangan:', e);
+      }
+    }
+    return mctsChooseMove(board, size, color, koPoint, rules);
+  }
+
+  // ---------------------------------------------------------------
+  // Estimasi kepemilikan wilayah (untuk menandai batu mati saat skor).
+  // Hasil: papan [r][c] bernilai -1..1, positif = milik Hitam.
+  // ---------------------------------------------------------------
+
+  async function neuralOwnership(board, toMove, rules, ctx) {
+    const model = await loadModel();
+    const { bin, glob } = buildFeatures(board, toMove, rules, ctx);
+    const inBin = tf.tensor(bin, [1, 361, 22], 'float32');
+    const inGlob = tf.tensor(glob, [1, 19], 'float32');
+    let outputs;
+    try {
+      outputs = await model.executeAsync({
+        'swa_model/bin_inputs': inBin,
+        'swa_model/global_inputs': inGlob,
+      });
+    } finally { inBin.dispose(); inGlob.dispose(); }
+    const outList = Array.isArray(outputs) ? outputs : [outputs];
+    const ot = outList.find((t) => t.shape.length === 3 && t.shape[1] === 19 && t.shape[2] === 19);
+    if (!ot) { outList.forEach((t) => t.dispose()); throw new Error('output ownership tidak ditemukan'); }
+    const flat = await ot.reshape([-1]).array();
+    outList.forEach((t) => t.dispose());
+    const sgn = toMove === 1 ? 1 : -1; // model: positif = milik pemain yang jalan; keluaran mentah -> tanh
+    const S = board.length;
+    return Array.from({ length: S }, (_, r) => Array.from({ length: S }, (_, c) => sgn * Math.tanh(flat[r * 19 + c])));
+  }
+
+  function playoutFinalBoard(board, size, toMove, koPoint, rules) {
+    let b = board, color = toMove, kp = koPoint, passes = 0;
+    const maxPlies = Math.min(size * size * 1.4, 200);
+    for (let i = 0; i < maxPlies && passes < 2; i++) {
+      const mv = samplePlayoutMove(b, size, color, kp, rules);
+      if (!mv) { passes++; color = color === 1 ? 2 : 1; continue; }
+      passes = 0;
+      const prevKey = rules.boardKey(b);
+      b = mv.sim.board;
+      kp = mv.sim.captured.length === 1 ? prevKey : null;
+      color = color === 1 ? 2 : 1;
+    }
+    return b;
+  }
+
+  function ownerMap(board, size, rules) {
+    const own = Array.from({ length: size }, () => Array(size).fill(0));
+    const seen = Array.from({ length: size }, () => Array(size).fill(false));
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (board[r][c] !== 0) { own[r][c] = board[r][c] === 1 ? 1 : -1; continue; }
+      if (seen[r][c]) continue;
+      const stack = [[r, c]], region = [], borders = new Set();
+      seen[r][c] = true;
+      while (stack.length) {
+        const [cr, cc] = stack.pop(); region.push([cr, cc]);
+        rules.neighbors(cr, cc, size).forEach(([nr, nc]) => {
+          if (board[nr][nc] === 0) { if (!seen[nr][nc]) { seen[nr][nc] = true; stack.push([nr, nc]); } }
+          else borders.add(board[nr][nc]);
+        });
+      }
+      if (borders.size === 1) {
+        const v = borders.has(1) ? 1 : -1;
+        region.forEach(([a, b]) => (own[a][b] = v));
+      }
+    }
+    return own;
+  }
+
+  async function mctsOwnership(board, size, toMove, koPoint, rules) {
+    const sum = Array.from({ length: size }, () => Array(size).fill(0));
+    const budget = size >= 19 ? 1500 : 900;
+    const start = now();
+    let n = 0;
+    while (n < 400 && (now() - start < budget || n < 30)) {
+      const own = ownerMap(playoutFinalBoard(board, size, toMove, koPoint, rules), size, rules);
+      for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) sum[r][c] += own[r][c];
+      n++;
+      if (n % 8 === 0) await new Promise((res) => setTimeout(res, 0)); // beri napas ke UI
+    }
+    return sum.map((row) => row.map((v) => v / n));
+  }
+
+  async function estimateOwnership(board, size, toMove, koPoint, ctx) {
+    const rules = window.GoRules;
+    if (size >= 5 && size <= 19 && typeof document !== 'undefined' && !modelFailed) {
+      try { return await neuralOwnership(board, toMove, rules, ctx); }
+      catch (e) { modelFailed = true; console.warn('Estimasi neural gagal, beralih ke playout:', e); }
+    }
+    return mctsOwnership(board, size, toMove, koPoint, rules);
+  }
+
+    // ---------------------------------------------------------------
+  // Analisa satu posisi (dipakai mode Analisa): kepemilikan (+ = Hitam),
+  // peluang menang Hitam, dan saran langkah (19x19 saja, dari model).
+  // ---------------------------------------------------------------
+  async function neuralAnalyze(board, toMove, koPoint, rules, ctx) {
+    const model = await loadModel();
+    const { bin, glob } = buildFeatures(board, toMove, rules, ctx);
+    const inBin = tf.tensor(bin, [1, 361, 22], 'float32');
+    const inGlob = tf.tensor(glob, [1, 19], 'float32');
+    let outputs;
+    try {
+      outputs = await model.executeAsync({ 'swa_model/bin_inputs': inBin, 'swa_model/global_inputs': inGlob });
+    } finally { inBin.dispose(); inGlob.dispose(); }
+    const outList = Array.isArray(outputs) ? outputs : [outputs];
+    const read = async (t) => (t ? Array.from(await t.reshape([-1]).array()) : null);
+    const pol = await read(outList.find((t) => t.shape.length === 3 && t.shape[2] === 362));
+    const ownRaw = await read(outList.find((t) => t.shape.length === 3 && t.shape[1] === 19 && t.shape[2] === 19));
+    const val = await read(outList.find((t) => t.shape.length === 2 && t.shape[1] === 3));
+    outList.forEach((t) => t.dispose());
+    if (!ownRaw) throw new Error('output ownership tidak ditemukan');
+    const sgn = toMove === 1 ? 1 : -1;
+    const S = board.length;
+    const own = Array.from({ length: S }, (_, r) => Array.from({ length: S }, (_, c) => sgn * Math.tanh(ownRaw[r * 19 + c])));
+    let wr = null; // peluang menang Hitam, dari logit menang/kalah pemain yang jalan
+    if (val) {
+      const m = Math.max(val[0], val[1]), w = Math.exp(val[0] - m), l = Math.exp(val[1] - m);
+      wr = toMove === 1 ? w / (w + l) : l / (w + l);
+    }
+    const cands = [];
+    if (pol) {
+      const lg = pol.slice(0, 362), mx = Math.max(...lg);
+      let z = 0; const ex = lg.map((v) => { const e = Math.exp(v - mx); z += e; return e; });
+      const order = ex.map((e, i) => ({ i, p: e / z })).filter((x) => x.i < 361).sort((a, b) => b.p - a.p);
+      for (const m of order) {
+        if (cands.length >= 3 || m.p < 0.02) break;
+        const r = Math.floor(m.i / 19), c = m.i % 19;
+        if (r >= S || c >= S) continue;
+        if (board[r][c] === 0 && rules.simulateMove(board, S, r, c, toMove, koPoint).ok) cands.push({ r, c, p: m.p });
+      }
+    }
+    return { own, wr, cands };
+  }
+
+  async function analyze(board, size, toMove, koPoint, ctx) {
+    const rules = window.GoRules;
+    if (size >= 5 && size <= 19 && !modelFailed) {
+      try { return await neuralAnalyze(board, toMove, koPoint, rules, ctx); }
+      catch (e) { modelFailed = true; console.warn('Analisa neural gagal, beralih ke playout:', e); }
+    }
+    return { own: await mctsOwnership(board, size, toMove, koPoint, rules), wr: null, cands: [] };
+  }
+
+  return { chooseMove, estimateOwnership, analyze };
+})();
+</script>
+
+<script>
+/* ===================================================================
+   App — permainan, penyimpanan di browser, dan mode analisa.
+=================================================================== */
+const NS = "http://www.w3.org/2000/svg";
+const KOMI = 7.5;
+const COLS = 'ABCDEFGHJKLMNOPQRST'; // tanpa huruf I, seperti papan Go biasa
+const KEY_GAMES = 'go.games.v1', KEY_CUR = 'go.cur.v1', KEY_SET = 'go.set.v1';
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => String(n).replace('.', ',');
+const fmt1 = (n) => fmt((Math.round(n * 10) / 10).toFixed(1));
+const nameOf = (c) => (c === 1 ? 'Hitam' : 'Putih');
+const coordName = (r, c, size) => COLS[c] + (size - r);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const el = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+/* ---------------- Penyimpanan (localStorage, aman bila diblokir) ---------------- */
+const store = (function () {
+  let ok = true; const mem = {};
+  try { localStorage.setItem('go.t', '1'); localStorage.removeItem('go.t'); } catch (e) { ok = false; }
+  return {
+    ok,
+    get(k, d) { try { const v = ok ? localStorage.getItem(k) : mem[k]; return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { const s = JSON.stringify(v); try { if (ok) localStorage.setItem(k, s); else mem[k] = s; return true; } catch (e) { return false; } },
+    del(k) { try { if (ok) localStorage.removeItem(k); else delete mem[k]; } catch (e) {} },
+  };
+})();
+let settings = Object.assign({ size: 9, vsAI: true, ai: 2, theme: 'auto', name: 'Kamu', aiName: 'Komputer', named: false }, store.get(KEY_SET, {}));
+const saveSettings = () => store.set(KEY_SET, settings);
+const pn = () => settings.name || 'Kamu', cn = () => settings.aiName || 'Komputer';
+let games = store.get(KEY_GAMES, []);
+if (!Array.isArray(games)) games = [];
+function persistGames() {
+  if (!store.set(KEY_GAMES, games)) flash('Penyimpanan penuh atau tidak tersedia — hapus beberapa game tersimpan.');
+}
+
+/* ---------------- Mesin status (murni) ---------------- */
+function emptyBoard(n) { return Array.from({ length: n }, () => Array(n).fill(0)); }
+function newState(size) {
+  return { size, board: emptyBoard(size), turn: 1, capB: 0, capW: 0, moveNo: 0, koPoint: null, koPos: null, moves: [], passCount: 0 };
+}
+// mv: {pass:true} atau {r,c}. Mengembalikan {ok, state} tanpa mengubah state lama.
+function applyMove(s, mv) {
+  const color = s.turn;
+  if (mv.pass) {
+    return { ok: true, state: Object.assign({}, s, { turn: 3 - color, koPoint: null, koPos: null, passCount: s.passCount + 1, moves: s.moves.concat([{ color, pass: true }]) }) };
+  }
+  const sim = GoRules.simulateMove(s.board, s.size, mv.r, mv.c, color, s.koPoint);
+  if (!sim.ok) return { ok: false, reason: sim.reason };
+  const single = sim.captured.length === 1;
+  return { ok: true, state: {
+    size: s.size, board: sim.board, turn: 3 - color,
+    capB: s.capB + (color === 2 ? sim.captured.length : 0), capW: s.capW + (color === 1 ? sim.captured.length : 0),
+    moveNo: s.moveNo + 1,
+    koPoint: single ? GoRules.boardKey(s.board) : null,
+    koPos: single ? { r: sim.captured[0][0], c: sim.captured[0][1] } : null,
+    moves: s.moves.concat([{ color, r: mv.r, c: mv.c }]), passCount: 0,
+  } };
+}
+const enc = (m) => (m.pass ? [m.color, -1, -1] : [m.color, m.r, m.c]);
+// Memutar ulang daftar langkah -> daftar status (indeks i = posisi setelah i langkah), atau null bila rusak.
+function replay(size, m) {
+  let s = newState(size); const states = [s];
+  for (const [color, r, c] of m) {
+    if (color !== s.turn) return null;
+    const res = applyMove(s, r < 0 ? { pass: true } : { r, c });
+    if (!res.ok) return null;
+    s = res.state; states.push(s);
+  }
+  return states;
+}
+function hasLegalMove(s, color) {
+  for (let r = 0; r < s.size; r++) for (let c = 0; c < s.size; c++)
+    if (s.board[r][c] === 0 && GoRules.simulateMove(s.board, s.size, r, c, color, s.koPoint).ok) return true;
+  return false;
+}
+
+/* ---------------- Skor ---------------- */
+// Skor area: batu hidup + wilayah (daerah kosong, termasuk bekas batu mati, yang hanya berbatasan
+// dengan satu warna). Putih mendapat komi.
+function computeArea(b, deadMap) {
+  const size = b.length;
+  const work = b.map((row, r) => row.map((v, c) => (deadMap && deadMap[r][c] ? 0 : v)));
+  let stB = 0, stW = 0, tB = 0, tW = 0, neutral = 0;
+  const terr = emptyBoard(size);
+  const seen = Array.from({ length: size }, () => Array(size).fill(false));
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) { if (work[r][c] === 1) stB++; else if (work[r][c] === 2) stW++; }
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    if (work[r][c] !== 0 || seen[r][c]) continue;
+    const stack = [[r, c]], region = [], borders = new Set();
+    seen[r][c] = true;
+    while (stack.length) {
+      const [cr, cc] = stack.pop(); region.push([cr, cc]);
+      GoRules.neighbors(cr, cc, size).forEach(([nr, nc]) => {
+        if (work[nr][nc] === 0) { if (!seen[nr][nc]) { seen[nr][nc] = true; stack.push([nr, nc]); } }
+        else borders.add(work[nr][nc]);
+      });
+    }
+    if (borders.size === 1) {
+      const o = borders.has(1) ? 1 : 2;
+      region.forEach(([a, c2]) => (terr[a][c2] = o));
+      if (o === 1) tB += region.length; else tW += region.length;
+    } else neutral += region.length;
+  }
+  return { stB, stW, tB, tW, neutral, terr, bTotal: stB + tB, wTotal: stW + tW + KOMI };
+}
+// Kelompok dianggap mati bila rata-rata kepemilikan titiknya condong ke lawan (> 0,5).
+function deadFromOwnership(board, own) {
+  const size = board.length;
+  const d = Array.from({ length: size }, () => Array(size).fill(false));
+  const seen = Array.from({ length: size }, () => Array(size).fill(false));
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    if (!board[r][c] || seen[r][c]) continue;
+    const g = GoRules.groupOf(r, c, board, size);
+    g.forEach(([a, b]) => (seen[a][b] = true));
+    const mean = g.reduce((s, [a, b]) => s + own[a][b], 0) / g.length; // + = hitam
+    const against = board[r][c] === 1 ? -mean : mean;
+    if (against > 0.5) g.forEach(([a, b]) => (d[a][b] = true));
+  }
+  return d;
+}
+const deadList = (d) => { const o = []; if (d) d.forEach((row, r) => row.forEach((v, c) => { if (v) o.push([r, c]); })); return o; };
+const deadMapFrom = (size, list) => { const d = Array.from({ length: size }, () => Array(size).fill(false)); (list || []).forEach(([r, c]) => { if (d[r]) d[r][c] = true; }); return d; };
+const verdictText = (a) => { const diff = a.bTotal - a.wTotal; return diff === 0 ? 'Seri' : (diff > 0 ? 'Hitam' : 'Putih') + ' menang ' + fmt(Math.abs(diff)) + ' poin'; };
+
+/* ---------------- Status permainan ---------------- */
+let tab = 'play';
+let G = null;
+function makeGame(size, states) {
+  return { size, vsAI: settings.vsAI, ai: settings.ai === 1 ? 1 : 2, states: states || [newState(size)], gameOver: false, scoring: false, dead: null,
+    result: null, resigned: null, reason: null, thinking: false, busy: '', token: 0, recId: null, startedAt: Date.now(), ignoreLimit: false };
+}
+const cur = () => G.states[G.states.length - 1];
+const inReview = () => tab === 'review' && rv;
+
+function newGame(size, practice) {
+  if (practice === undefined) practice = !!(G && G.practice);
+  maybeArchiveUnfinished();
+  G = makeGame(size);
+  if (practice) { G.practice = true; G.vsAI = false; }
+  settings.size = size; saveSettings();
+  syncControls(); flash(''); advance();
+}
+
+function syncControls() {
+  [...$('sizeGroup').children].forEach((b) => b.classList.toggle('active', parseInt(b.dataset.size, 10) === G.size));
+  $('aiToggle').checked = G.vsAI;
+  [...$('sideGroup').children].forEach((b) => b.classList.toggle('active', 3 - parseInt(b.dataset.side, 10) === G.ai));
+  $('sideRow').style.display = G.vsAI ? '' : 'none';
+  $('aiRow').style.display = G.practice ? 'none' : '';
+}
+
+function saveCurrent() {
+  const s = cur();
+  store.set(KEY_CUR, { v: 1, size: G.size, vsAI: G.vsAI, ai: G.ai, practice: !!G.practice, startedAt: G.startedAt, recId: G.recId, m: s.moves.map(enc),
+    end: (G.gameOver || G.scoring) ? { gameOver: G.gameOver, scoring: G.scoring, result: G.result, resigned: G.resigned, reason: G.reason, dead: G.dead ? deadList(G.dead) : null } : null });
+}
+
+function flash(t) { $('msg').textContent = t || ''; }
+
+/* ---------------- Arsip game ---------------- */
+function recSummary() {
+  if (G.resigned) return G.result;
+  if (G.gameOver && G.dead) return verdictText(computeArea(cur().board, G.dead));
+  return 'Belum selesai';
+}
+function archiveGame(status) {
+  const s = cur();
+  if (s.moves.length === 0) return null;
+  if (!G.recId) G.recId = uid();
+  const old = games.find((g) => g.id === G.recId);
+  const a = G.dead ? computeArea(s.board, G.dead) : null;
+  const rec = {
+    id: G.recId, ts: G.startedAt, size: s.size, vsAI: G.vsAI, ai: G.ai, pName: pn(), aName: cn(), komi: KOMI, m: s.moves.map(enc), status,
+    result: recSummary(), sc: (a && status === 'finished') ? { b: a.bTotal, w: a.wTotal } : null,
+    dead: G.dead ? deadList(G.dead) : [], an: (old && old.m.length === s.moves.length) ? old.an : null,
+  };
+  if (old) games[games.indexOf(old)] = rec; else games.unshift(rec);
+  persistGames(); renderHistory();
+  return rec;
+}
+function maybeArchiveUnfinished() {
+  if (!G) return;
+  const s = cur();
+  if (!G.gameOver && s.moves.length >= 6) archiveGame('unfinished');
+}
+function deleteGame(id, quiet) {
+  const i = games.findIndex((g) => g.id === id);
+  if (i < 0) return;
+  games.splice(i, 1);
+  persistGames(); renderHistory();
+  if (!quiet) flash('Game dihapus.');
+}
+
+/* ---------------- Papan SVG ---------------- */
+let gridSize = 0, PAD = 40, CELL = 0;
+const px = (i) => PAD + i * CELL;
+
+function drawGrid(size) {
+  gridSize = size; CELL = (560 - PAD * 2) / (size - 1);
+  const svg = $('boardSvg');
+  svg.innerHTML = "";
+  const defs = el('defs', {});
+  const wood = el('linearGradient', { id: 'wood', x1: '0', y1: '0', x2: '1', y2: '1' });
+  wood.appendChild(el('stop', { offset: '0%', style: 'stop-color:var(--wood-1)' }));
+  wood.appendChild(el('stop', { offset: '100%', style: 'stop-color:var(--wood-2)' }));
+  defs.appendChild(wood);
+  [['gB', 'var(--stone-b1)', 'var(--stone-b2)'], ['gW', 'var(--stone-w1)', 'var(--stone-w2)']].forEach(([id, a, b]) => {
+    const g = el('radialGradient', { id, cx: '35%', cy: '30%', r: '70%' });
+    g.appendChild(el('stop', { offset: '0%', style: 'stop-color:' + a }));
+    g.appendChild(el('stop', { offset: '100%', style: 'stop-color:' + b }));
+    defs.appendChild(g);
+  });
+  svg.appendChild(defs);
+  svg.appendChild(el('rect', { x: 0, y: 0, width: 560, height: 560, fill: 'url(#wood)' }));
+  for (let i = 0; i < size; i++) {
+    const p = px(i), w = i === 0 || i === size - 1 ? 1.8 : 1.1;
+    svg.appendChild(el('line', { x1: PAD, y1: p, x2: 560 - PAD, y2: p, stroke: 'var(--line)', 'stroke-width': w }));
+    svg.appendChild(el('line', { x1: p, y1: PAD, x2: p, y2: 560 - PAD, stroke: 'var(--line)', 'stroke-width': w }));
+  }
+  const starSizes = { 9: [2, 4, 6], 13: [3, 6, 9], 19: [3, 9, 15] };
+  const pts = starSizes[size] || [];
+  pts.forEach((r) => pts.forEach((c) => svg.appendChild(el('circle', { cx: px(c), cy: px(r), r: 3.4, fill: 'var(--line)' }))));
+  const fs = size === 19 ? 11 : 12.5;
+  for (let i = 0; i < size; i++) {
+    const t = { fill: 'var(--line)', 'font-size': fs, 'font-family': 'system-ui,sans-serif', 'text-anchor': 'middle', 'dominant-baseline': 'central', opacity: 0.8 };
+    [[px(i), PAD - 22, COLS[i]], [px(i), 560 - PAD + 22, COLS[i]], [PAD - 22, px(i), size - i], [560 - PAD + 22, px(i), size - i]].forEach(([x, y, s]) => {
+      const e = el('text', Object.assign({ x, y }, t)); e.textContent = s; svg.appendChild(e);
+    });
+  }
+  ['overLayer', 'stoneLayer', 'markLayer', 'ghostLayer'].forEach((id) => svg.appendChild(el('g', { id, 'pointer-events': 'none' })));
+  const hit = el('g', { id: 'hitLayer' });
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    const rect = el('rect', { x: px(c) - CELL / 2, y: px(r) - CELL / 2, width: CELL, height: CELL, fill: 'transparent' });
+    rect.addEventListener('click', () => handleClick(r, c));
+    rect.addEventListener('mouseenter', () => showGhost(r, c));
+    rect.addEventListener('mouseleave', clearGhost);
+    hit.appendChild(rect);
+  }
+  svg.appendChild(hit);
+}
+
+function view() {
+  if (inReview()) {
+    const s = rv.states[rv.idx];
+    const last = rv.idx === rv.states.length - 1 && rv.rec.dead && rv.rec.dead.length > 0;
+    return { s, review: true, scoring: !!last, dead: last ? deadMapFrom(s.size, rv.rec.dead) : null, an: rv.cache.get(rv.idx) || null };
+  }
+  return { s: cur(), review: false, scoring: G.scoring, dead: G.dead, an: (G.hint && G.hint.n === cur().moves.length) ? G.hint.res : null };
+}
+
+function canHumanPlay() { return tab !== 'review' && !G.gameOver && !G.scoring && !(G.vsAI && cur().turn === G.ai) && !G.thinking; }
+
+function showGhost(r, c) {
+  clearGhost();
+  if (!canHumanPlay()) return;
+  const s = cur();
+  if (s.board[r][c] !== 0 || !GoRules.simulateMove(s.board, s.size, r, c, s.turn, s.koPoint).ok) return;
+  $('ghostLayer').appendChild(el('circle', { cx: px(c), cy: px(r), r: CELL * 0.44, fill: s.turn === 1 ? '#000' : '#fff', opacity: 0.4 }));
+}
+function clearGhost() { const g = $('ghostLayer'); if (g) g.innerHTML = ""; }
+
+function drawStones(v) {
+  clearGhost();
+  const s = v.s, size = s.size;
+  const over = $('overLayer'), layer = $('stoneLayer'), marks = $('markLayer');
+  over.innerHTML = ""; layer.innerHTML = ""; marks.innerHTML = "";
+  const area = v.scoring && v.dead ? computeArea(s.board, v.dead) : null;
+
+  // overlay analisa: perkiraan kepemilikan
+  if (v.an && (!v.review || rv.showOwn)) {
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      const o = v.an.own[r][c], a = Math.abs(o);
+      if (a < 0.1) continue;
+      const sz = CELL * (0.18 + 0.5 * a);
+      over.appendChild(el('rect', { x: px(c) - sz / 2, y: px(r) - sz / 2, width: sz, height: sz, fill: o > 0 ? '#000' : '#fff', opacity: 0.45, stroke: 'rgba(0,0,0,.3)', 'stroke-width': 0.5 }));
+    }
+  }
+
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    const val = s.board[r][c];
+    if (!val) continue;
+    const isDead = !!(v.scoring && v.dead && v.dead[r][c]);
+    layer.appendChild(el('circle', { cx: px(c), cy: px(r), r: CELL * 0.46, fill: val === 1 ? 'url(#gB)' : 'url(#gW)',
+      stroke: val === 2 ? 'rgba(0,0,0,.3)' : 'rgba(0,0,0,.5)', 'stroke-width': 0.6, opacity: isDead ? 0.4 : 1 }));
+    if (isDead) {
+      const d = CELL * 0.2, x = px(c), y = px(r), col = val === 1 ? '#fff' : '#B3412B';
+      marks.appendChild(el('line', { x1: x - d, y1: y - d, x2: x + d, y2: y + d, stroke: col, 'stroke-width': 2.4, 'stroke-linecap': 'round' }));
+      marks.appendChild(el('line', { x1: x - d, y1: y + d, x2: x + d, y2: y - d, stroke: col, 'stroke-width': 2.4, 'stroke-linecap': 'round' }));
+    }
+  }
+  if (area) {
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      const t = area.terr[r][c]; if (!t) continue;
+      const sz = CELL * 0.26;
+      marks.appendChild(el('rect', { x: px(c) - sz / 2, y: px(r) - sz / 2, width: sz, height: sz, fill: t === 1 ? '#111' : '#fff', stroke: 'rgba(0,0,0,.45)', 'stroke-width': 0.8, opacity: 0.9 }));
+    }
+  }
+  if (!v.scoring) {
+    const lm = s.moves[s.moves.length - 1];
+    if (lm && !lm.pass && s.board[lm.r][lm.c]) {
+      marks.appendChild(el('circle', { cx: px(lm.c), cy: px(lm.r), r: CELL * 0.15, fill: 'none', stroke: s.board[lm.r][lm.c] === 1 ? '#fff' : '#000', 'stroke-width': 2 }));
+    }
+    if (s.koPos && s.koPoint && s.board[s.koPos.r][s.koPos.c] === 0) {
+      const z = CELL * 0.3;
+      marks.appendChild(el('rect', { x: px(s.koPos.c) - z / 2, y: px(s.koPos.r) - z / 2, width: z, height: z, fill: 'none', stroke: '#B3412B', 'stroke-width': 2 }));
+    }
+  }
+  // saran langkah (model)
+  if (v.an && v.an.cands && (!v.review || rv.showCands)) {
+    v.an.cands.forEach((m, i) => {
+      const g = el('g', {});
+      g.appendChild(el('circle', { cx: px(m.c), cy: px(m.r), r: CELL * 0.4, fill: i === 0 ? 'rgba(20,150,135,.88)' : 'rgba(20,150,135,.55)', stroke: '#0e5c52', 'stroke-width': 1.2 }));
+      const t = el('text', { x: px(m.c), y: px(m.r), 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': CELL * 0.3, 'font-family': 'system-ui,sans-serif', fill: '#fff', 'font-weight': 700 });
+      t.textContent = Math.round(m.p * 100); g.appendChild(t); marks.appendChild(g);
+    });
+  }
+}
+
+/* ---------------- Render ---------------- */
+function render() {
+  const v = view();
+  if (gridSize !== v.s.size) drawGrid(v.s.size);
+  drawStones(v);
+  renderBars(v);
+  if (tab === 'review' && rv) renderReview(); else renderPlayPane();
+}
+
+function renderBars(v) {
+  const s = v.s;
+  $('capBtxt').textContent = 'tangkap ' + s.capW;
+  $('capWtxt').textContent = 'tangkap ' + s.capB;
+  const aiC = v.review ? (rv.rec.vsAI ? (rv.rec.ai === 1 ? 1 : 2) : 0) : (G.vsAI ? G.ai : 0);
+  const me = v.review ? (rv.rec.pName || pn()) : pn(), bot = v.review ? (rv.rec.aName || cn()) : cn();
+  $('nmB').textContent = aiC === 1 ? bot : (aiC ? me : 'Hitam');
+  $('nmW').textContent = aiC === 2 ? bot : (aiC ? me : 'Putih');
+  $('bcol').classList.toggle('flip', aiC === 1);
+  const over = !v.review && (G.gameOver || G.scoring);
+  $('plB').classList.toggle('on', !over && s.turn === 1);
+  $('plW').classList.toggle('on', !over && s.turn === 2);
+  let chipText = 'Siap', live = false;
+  if (v.review) { chipText = rv.progress ? 'Menganalisa ' + rv.progress.done + '/' + rv.progress.total : (rv.busy ? 'Menganalisa…' : 'Analisa'); live = !!(rv.progress || rv.busy); }
+  else if (G.busy) { chipText = G.busy; live = true; }
+  else if (G.thinking) { chipText = cn() + ' berpikir…'; live = true; }
+  else if (G.resigned) chipText = 'Menyerah';
+  else if (G.gameOver) chipText = 'Selesai';
+  else if (G.scoring) chipText = 'Skor';
+  $('statusChipText').textContent = chipText;
+  $('statusChip').classList.toggle('live', live);
+  $('metaLeft').textContent = s.size + '×' + s.size + ' · komi ' + fmt(KOMI) + (v.review ? (rv.rec.vsAI ? ' · vs komputer' : ' · 2 pemain') : (G.vsAI ? ' · ' + pn() + ' (' + nameOf(3 - G.ai) + ') vs ' + cn() : (G.practice ? ' · posisi custom' : ' · 2 pemain')));
+  $('metaRight').textContent = v.review ? 'Mode analisa' : '';
+}
+
+function renderMoveList(s) {
+  const box = $('moveList'), ms = s.moves;
+  box.textContent = '';
+  if (!ms.length) { const d = document.createElement('div'); d.className = 'hint'; d.style.gridColumn = '1 / -1'; d.textContent = 'Belum ada langkah.'; box.appendChild(d); return; }
+  ms.forEach((m, i) => {
+    if (i % 2 === 0) { const n = document.createElement('span'); n.className = 'n'; n.textContent = (i / 2 + 1) + '.'; box.appendChild(n); }
+    const e = document.createElement('span'); e.className = 'm' + (i === ms.length - 1 ? ' last' : '');
+    e.textContent = m.pass ? 'lewati' : coordName(m.r, m.c, s.size); box.appendChild(e);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+function renderPlayPane() {
+  const s = cur();
+  $('moveNo').textContent = s.moveNo; renderMoveList(s);
+  const hv = (G.hint && G.hint.n === s.moves.length) ? G.hint.res : null;
+  $('hintBtn').hidden = !G.practice; $('hintInfo').hidden = !(G.practice && hv);
+  if (hv) {
+    let t = 'Keunggulan: <b>' + leadText(hv.lead) + '</b>';
+    if (hv.wr != null) t += ' · Hitam menang <b>' + Math.round(hv.wr * 100) + '%</b>';
+    if (hv.cands.length) t += '<br>Saran: ' + hv.cands.map((m) => '<b>' + coordName(m.r, m.c, s.size) + '</b> ' + Math.round(m.p * 100) + '%').join(' · ');
+    $('hintInfo').innerHTML = t;
+  }
+  const box = $('scoreBox');
+  box.hidden = !(G.scoring && G.dead);
+  if (G.scoring && G.dead) {
+    const a = computeArea(s.board, G.dead);
+    $('sbStonesB').textContent = a.stB; $('sbStonesW').textContent = a.stW;
+    $('sbTerrB').textContent = a.tB; $('sbTerrW').textContent = a.tW;
+    $('sbKomi').textContent = fmt(KOMI);
+    $('sbTotB').textContent = a.bTotal; $('sbTotW').textContent = fmt(a.wTotal);
+    $('verdict').textContent = (G.result ? G.result + ' ' : '') + verdictText(a) + '.';
+    $('scoreHint').textContent = (a.neutral > 0 ? 'Ada ' + a.neutral + ' titik netral (dame/seki) yang tidak dihitung. ' : '') + 'Klik kelompok batu untuk menandainya mati/hidup.';
+  }
+  if (G.resigned) flash(G.result);
+  const resignedOnly = G.gameOver && !G.scoring;
+  $('undoBtn').disabled = G.states.length <= (G.vsAI && G.ai === 1 ? 2 : 1);
+  $('passBtn').disabled = G.gameOver || G.scoring || (G.vsAI && s.turn === G.ai);
+  $('resignBtn').disabled = G.gameOver || G.scoring;
+  $('scoreBtn').textContent = G.scoring ? 'Lanjut main' : 'Hitung skor';
+  $('scoreBtn').disabled = resignedOnly;
+  $('saveBtn').disabled = s.moves.length === 0;
+}
+
+/* ---------------- Alur permainan ---------------- */
+function advance() {
+  render(); saveCurrent();
+  if (G.gameOver || G.scoring || tab === 'review') return;
+  const s = cur();
+  if (s.moveNo >= s.size * s.size * 3 && !G.ignoreLimit) { endGame('Batas langkah tercapai.', 'limit'); return; }
+  if (!hasLegalMove(s, s.turn)) {
+    flash(nameOf(s.turn) + ' tidak punya langkah legal — otomatis lewati.');
+    doPass(true); return;
+  }
+  if (G.vsAI && s.turn === G.ai) setTimeout(aiMove, 350);
+}
+
+function handleClick(r, c) {
+  if (G.scoring && tab !== 'review') { toggleDead(r, c); return; }
+  if (!canHumanPlay()) return;
+  const res = applyMove(cur(), { r, c });
+  if (!res.ok) { flash(res.reason); return; }
+  G.states.push(res.state);
+  flash(''); advance();
+}
+
+async function aiMove() {
+  if (G.gameOver || G.scoring || !G.vsAI || cur().turn !== G.ai || G.thinking || tab === 'review') return;
+  const game = G, token = G.token;
+  const stale = () => game !== G || token !== G.token || G.gameOver || G.scoring || !G.vsAI || cur().turn !== G.ai || tab === 'review';
+  G.thinking = true; render();
+  const s = cur();
+  let move = null, passNow = false;
+  try {
+    const ctx = { moves: s.moves, koPos: s.koPos };
+    const last = s.moves[s.moves.length - 1];
+    // Hitam baru lewati: komputer ikut lewati (mengakhiri game) bila papan sudah tuntas dan ia unggul.
+    if (last && last.pass && last.color === 3 - G.ai) {
+      const own = await Bot.estimateOwnership(s.board, s.size, G.ai, s.koPoint, ctx);
+      if (stale()) { if (game === G) { G.thinking = false; render(); } return; }
+      const est = computeArea(s.board, deadFromOwnership(s.board, own));
+      const settled = est.neutral <= Math.ceil(s.size * s.size * 0.08) && s.moveNo >= s.size * s.size * 0.3;
+      passNow = settled && (G.ai === 2 ? est.wTotal > est.bTotal : est.bTotal > est.wTotal);
+    }
+    if (!passNow) {
+      move = await Bot.chooseMove(s.board, s.size, G.ai, s.koPoint, ctx);
+      if (stale()) { if (game === G) { G.thinking = false; render(); } return; }
+    }
+  } catch (e) {
+    console.error(e);
+    if (game === G && token === G.token) { G.thinking = false; flash('Komputer gagal memilih langkah: ' + e.message); render(); }
+    return;
+  }
+  G.thinking = false; flash('');
+  if (passNow || !move) { doPass(); return; }
+  const res = applyMove(cur(), move);
+  if (!res.ok) { doPass(); return; }
+  G.states.push(res.state);
+  advance();
+}
+
+function doPass(auto) {
+  if (G.gameOver || G.scoring) return;
+  const s = cur(), who = s.turn;
+  const res = applyMove(s, { pass: true });
+  G.states.push(res.state);
+  if (res.state.passCount >= 2) { endGame('Kedua pemain lewati berturut-turut.', 'pass'); return; }
+  if (!auto) flash(nameOf(who) + ' melewati giliran.');
+  advance();
+}
+
+function doResign() {
+  if (G.gameOver) return;
+  const loser = G.vsAI ? 3 - G.ai : cur().turn, winner = 3 - loser;
+  G.token++; G.thinking = false; G.busy = '';
+  G.gameOver = true; G.scoring = false; G.dead = null; G.resigned = loser;
+  G.result = nameOf(loser) + ' menyerah — ' + nameOf(winner) + ' menang.';
+  archiveGame('resigned'); advance();
+}
+
+function doUndo() {
+  if (G.states.length <= (G.vsAI && G.ai === 1 ? 2 : 1)) return;
+  if (G.recId && games.some((g) => g.id === G.recId)) deleteGame(G.recId, true);
+  G.token++; G.thinking = false; G.busy = '';
+  G.gameOver = false; G.scoring = false; G.dead = null; G.result = null; G.resigned = null;
+  G.states.pop();
+  if (G.vsAI && cur().turn === G.ai && G.states.length > 1) G.states.pop(); // mundur sampai giliran pemain
+  flash('Langkah dibatalkan.'); advance();
+}
+
+function endGame(reason, kind) {
+  G.gameOver = true; G.token++; G.thinking = false;
+  G.result = reason; G.reason = kind;
+  enterScoring();
+}
+
+async function enterScoring() {
+  const game = G;
+  G.scoring = true; G.thinking = false;
+  const token = ++G.token;
+  const s = cur();
+  G.dead = emptyBoard(s.size).map((row) => row.map(() => false));
+  G.busy = 'Memperkirakan wilayah…';
+  render(); saveCurrent();
+  try {
+    const own = await Bot.estimateOwnership(s.board, s.size, s.turn, s.koPoint, { moves: s.moves, koPos: s.koPos });
+    if (game !== G || token !== G.token || !G.scoring) return;
+    G.dead = deadFromOwnership(s.board, own);
+    flash('Perkiraan otomatis — klik kelompok batu untuk mengoreksi.');
+  } catch (e) {
+    console.error(e);
+    if (game !== G || token !== G.token || !G.scoring) return;
+    flash('Estimasi otomatis gagal — tandai batu mati secara manual.');
+  }
+  G.busy = '';
+  if (G.gameOver) archiveGame('finished');
+  render(); saveCurrent();
+}
+
+function toggleDead(r, c) {
+  const s = cur();
+  if (!G.dead || G.busy || s.board[r][c] === 0) return;
+  const mark = !G.dead[r][c];
+  GoRules.groupOf(r, c, s.board, s.size).forEach(([a, b]) => (G.dead[a][b] = mark));
+  if (G.gameOver) archiveGame('finished');
+  render(); saveCurrent();
+}
+
+function resumeGame() {
+  G.token++; G.thinking = false; G.busy = '';
+  if (G.recId) deleteGame(G.recId, true);
+  const last = cur().moves[cur().moves.length - 1];
+  if (G.gameOver && last && last.pass && G.states.length > 1) G.states.pop(); // batalkan lewati terakhir
+  if (G.reason === 'limit') G.ignoreLimit = true;
+  G.scoring = false; G.gameOver = false; G.result = null; G.resigned = null; G.dead = null; G.reason = null;
+  flash('Permainan dilanjutkan.'); advance();
+}
+
+/* ---------------- Riwayat ---------------- */
+const fmtDate = (ts) => new Date(ts).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const armTimers = new WeakMap();
+// Tombol hapus dua langkah: klik pertama meminta konfirmasi, klik kedua mengeksekusi.
+function confirmClick(btn, label, action) {
+  if (btn.dataset.arm === '1') { clearTimeout(armTimers.get(btn)); action(); return; }
+  const old = btn.textContent;
+  btn.dataset.arm = '1'; btn.textContent = label; btn.classList.add('arm');
+  armTimers.set(btn, setTimeout(() => { btn.dataset.arm = ''; btn.textContent = old; btn.classList.remove('arm'); }, 3000));
+}
+
+function renderHistory() {
+  $('histCount').textContent = games.length;
+  $('histTitle').textContent = games.length ? games.length + ' game tersimpan' : 'Game tersimpan';
+  $('clearAllBtn').hidden = games.length === 0;
+  const list = $('glist'); list.innerHTML = '';
+  if (!games.length) {
+    const d = document.createElement('div'); d.className = 'empty';
+    d.textContent = 'Belum ada game tersimpan. Selesaikan sebuah permainan, atau tekan "Simpan & analisa" di tab Main.';
+    list.appendChild(d); return;
+  }
+  games.forEach((g) => {
+    const it = document.createElement('div'); it.className = 'gitem';
+    const analyzed = g.an && g.an.lead && g.an.lead.some((x) => x != null);
+    const t = document.createElement('div'); t.className = 't';
+    const a1 = document.createElement('span'); a1.textContent = g.size + '×' + g.size + ' · ' + (g.vsAI ? (g.pName || settings.name) + ' vs ' + (g.aName || settings.aiName) : '2 pemain');
+    const a2 = document.createElement('span'); a2.textContent = fmtDate(g.ts);
+    t.append(a1, a2);
+    const r = document.createElement('div'); r.className = 'r';
+    const nm = g.m.filter((x) => x[1] >= 0).length;
+    r.innerHTML = '<b></b> · ' + nm + ' langkah';
+    r.firstChild.textContent = g.result || 'Belum selesai';
+    if (analyzed) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'dianalisa'; r.appendChild(b); }
+    const a = document.createElement('div'); a.className = 'a';
+    const bA = document.createElement('button'); bA.className = 'sm primary'; bA.textContent = 'Analisa'; bA.onclick = () => openReview(g.id);
+    const bS = document.createElement('button'); bS.className = 'sm'; bS.textContent = 'SGF'; bS.onclick = () => downloadSgf(g);
+    const bD = document.createElement('button'); bD.className = 'sm danger'; bD.textContent = 'Hapus';
+    bD.onclick = () => confirmClick(bD, 'Yakin?', () => { if (rv && rv.rec.id === g.id) closeReview(); deleteGame(g.id); });
+    a.append(bA, bS, bD);
+    it.append(t, r, a); list.appendChild(it);
+  });
+}
+
+function sgfOf(g) {
+  const sg = (s) => String(s).replace(/[\]\\]/g, ''), me = g.pName || settings.name, bot = g.aName || settings.aiName;
+  const ch = (n) => String.fromCharCode(97 + n);
+  const dt = new Date(g.ts), p2 = (n) => String(n).padStart(2, '0');
+  let re = '';
+  if (g.sc) re = g.sc.b > g.sc.w ? 'B+' + (g.sc.b - g.sc.w) : g.sc.w > g.sc.b ? 'W+' + (g.sc.w - g.sc.b) : '0';
+  else if (/Hitam menang/.test(g.result || '')) re = 'B+R'; else if (/Putih menang/.test(g.result || '')) re = 'W+R';
+  let out = '(;GM[1]FF[4]CA[UTF-8]AP[LatihanGo]SZ[' + g.size + ']KM[' + g.komi + ']RU[Chinese]DT[' + dt.getFullYear() + '-' + p2(dt.getMonth() + 1) + '-' + p2(dt.getDate()) + ']PB[' + sg(g.vsAI ? (g.ai === 1 ? bot : me) : 'Hitam') + ']PW[' + sg(g.vsAI ? (g.ai === 1 ? me : bot) : 'Putih') + ']' + (re ? 'RE[' + re + ']' : '') + '\n';
+  g.m.forEach(([color, r, c]) => { out += ';' + (color === 1 ? 'B' : 'W') + '[' + (r < 0 ? '' : ch(c) + ch(r)) + ']'; });
+  return out + ')\n';
+}
+function downloadSgf(g) {
+  const blob = new Blob([sgfOf(g)], { type: 'application/x-go-sgf' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'latihan-go-' + new Date(g.ts).toISOString().slice(0, 10) + '-' + g.size + 'x' + g.size + '.sgf';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ---------------- Mode analisa ---------------- */
+let rv = null;
+let lockChain = Promise.resolve();
+const withLock = (fn) => { const p = lockChain.then(fn, fn); lockChain = p.catch(() => {}); return p; };
+
+function openReview(id) {
+  const rec = games.find((g) => g.id === id);
+  if (!rec) return;
+  const states = replay(rec.size, rec.m);
+  if (!states) { flash('Rekaman game rusak dan tidak bisa dibuka.'); return; }
+  if (!rec.an) rec.an = { lead: [], wr: [] };
+  if (rv) rv.stop = true;
+  rv = { rec, states, idx: states.length - 1, cache: new Map(), showOwn: true, showCands: true, auto: rec.size < 19,
+    busy: false, progress: null, stop: false, timer: null };
+  G.token++; G.thinking = false; // jeda komputer selama menganalisa
+  $('rvAuto').checked = rv.auto; $('rvOwn').checked = true; $('rvCands').checked = true;
+  $('tabRev').disabled = false;
+  showTab('review');
+}
+function closeReview() {
+  if (rv) { rv.stop = true; clearTimeout(rv.timer); }
+  rv = null; $('tabRev').disabled = true;
+  if (tab === 'review') showTab('hist');
+}
+
+function showTab(t) {
+  const prev = tab;
+  tab = t;
+  if (prev === 'review' && t !== 'review' && rv) { rv.stop = true; rv.progress = null; }
+  [['play', 'tabPlay', 'panePlay'], ['hist', 'tabHist', 'paneHist'], ['review', 'tabRev', 'paneRev'], ['prof', 'tabProf', 'paneProf']].forEach(([k, tb, pn]) => {
+    $(tb).setAttribute('aria-selected', String(k === t)); $(pn).hidden = k !== t;
+  });
+  if (t === 'hist') renderHistory();
+  if (t === 'prof') { fillProfile(); $('nameBox').open = !settings.named; }
+  if (t === 'review') { if (rv) { rv.stop = false; scheduleAuto(0); } }
+  render();
+  if (t !== 'review' && prev === 'review') advance(); // lanjutkan komputer bila gilirannya
+}
+
+function gotoIdx(i) {
+  if (!rv) return;
+  rv.idx = Math.max(0, Math.min(rv.states.length - 1, i));
+  render(); scheduleAuto(250);
+}
+function scheduleAuto(ms) {
+  if (!rv) return;
+  clearTimeout(rv.timer);
+  if (rv.auto && !rv.cache.has(rv.idx)) rv.timer = setTimeout(() => analyzeOne(rv.idx), ms);
+}
+
+async function analyzeIdx(i) {
+  const ref = rv; if (!ref) return null;
+  if (ref.cache.has(i)) return ref.cache.get(i);
+  return withLock(async () => {
+    if (rv !== ref) return null;
+    if (ref.cache.has(i)) return ref.cache.get(i);
+    const s = ref.states[i];
+    const res = await Bot.analyze(s.board, s.size, s.turn, s.koPoint, { moves: s.moves, koPos: s.koPos });
+    let sum = 0; res.own.forEach((row) => row.forEach((v) => (sum += v)));
+    res.lead = sum - KOMI;
+    ref.cache.set(i, res);
+    ref.rec.an.lead[i] = Math.round(res.lead * 10) / 10;
+    ref.rec.an.wr[i] = res.wr == null ? null : Math.round(res.wr * 1000) / 1000;
+    return res;
+  });
+}
+async function analyzeOne(i) {
+  const ref = rv; if (!ref || ref.busy) return;
+  ref.busy = true; render();
+  try { await analyzeIdx(i); } catch (e) { console.error(e); flash('Analisa gagal: ' + e.message); }
+  if (rv === ref) { ref.busy = false; persistGames(); render(); }
+}
+async function analyzeAll() {
+  const ref = rv; if (!ref || ref.progress) return;
+  const n = ref.states.length;
+  ref.stop = false; ref.progress = { done: 0, total: n }; render();
+  try {
+    for (let i = 0; i < n; i++) {
+      if (rv !== ref || ref.stop) break;
+      await analyzeIdx(i);
+      ref.progress.done = i + 1;
+      if (rv === ref && tab === 'review') render();
+      if (i % 5 === 4) persistGames();
+      await new Promise((r) => setTimeout(r, 0));
+    }
+  } catch (e) { console.error(e); flash('Analisa gagal: ' + e.message); }
+  if (rv === ref) { ref.progress = null; persistGames(); renderHistory(); if (tab === 'review') render(); }
+}
+
+function leadText(l) { return l === 0 ? 'seimbang' : (l > 0 ? 'Hitam' : 'Putih') + ' +' + fmt1(Math.abs(l)); }
+
+function renderReview() {
+  const { rec, states, idx } = rv, n = states.length - 1, s = states[idx];
+  $('rvTitle').textContent = rec.size + '×' + rec.size + ' · ' + fmtDate(rec.ts);
+  $('rvSub').textContent = (rec.result || 'Belum selesai') + (rec.vsAI ? ' · ' + (rec.pName || settings.name) + ' vs ' + (rec.aName || settings.aiName) : '');
+  const sl = $('rvSlider'); sl.max = n; sl.value = idx;
+  $('rvPosL').textContent = 'Langkah ' + idx + ' / ' + n;
+  const lm = s.moves[s.moves.length - 1];
+  $('rvPosR').textContent = lm ? nameOf(lm.color) + ' ' + (lm.pass ? 'lewati' : coordName(lm.r, lm.c, s.size)) : 'Posisi awal';
+  $('rvFirst').disabled = $('rvPrev').disabled = idx === 0;
+  $('rvNext').disabled = $('rvLast').disabled = idx === n;
+
+  const an = rv.cache.get(idx);
+  const savedLead = rec.an.lead[idx], savedWr = rec.an.wr[idx];
+  const lead = an ? an.lead : savedLead, wr = an ? an.wr : savedWr;
+  let html = '';
+  if (lead == null) html = '<span style="color:var(--muted)">Belum dianalisa. Tekan "Analisa posisi ini" atau "Analisa semua".</span>';
+  else {
+    html = 'Keunggulan: <b>' + leadText(lead) + '</b>';
+    if (wr != null) html += '<br>Peluang menang Hitam: <b>' + Math.round(wr * 100) + '%</b><div class="bar"><i style="width:' + Math.round(wr * 100) + '%"></i></div>';
+    else html += '<br><span style="color:var(--muted);font-size:12px">Perkiraan dari simulasi acak (kata.js tidak termuat, jadi tanpa peluang menang &amp; saran langkah).</span>';
+    if (an && an.cands && an.cands.length) html += '<br>Saran model: ' + an.cands.slice(0, 3).map((m) => '<b>' + coordName(m.r, m.c, s.size) + '</b> ' + Math.round(m.p * 100) + '%').join(' · ');
+  }
+  $('rvInfo').innerHTML = html;
+
+  $('rvAll').textContent = rv.progress ? 'Menganalisa…' : 'Analisa semua';
+  $('rvAll').disabled = !!rv.progress; $('rvOne').disabled = rv.busy || !!rv.progress;
+  $('rvProg').hidden = !rv.progress;
+  if (rv.progress) $('rvProgBar').style.width = Math.round(100 * rv.progress.done / rv.progress.total) + '%';
+  drawGraph(); drawMistakes();
+}
+
+function drawGraph() {
+  const g = $('graph'); g.innerHTML = '';
+  const { rec, states, idx } = rv, n = states.length - 1;
+  const lead = rec.an.lead;
+  const vals = lead.filter((x) => x != null);
+  g.appendChild(el('line', { x1: 10, y1: 45, x2: 290, y2: 45, stroke: 'var(--panel-line)', 'stroke-width': 1 }));
+  const X = (i) => 10 + (n === 0 ? 0 : (i / n) * 280);
+  if (vals.length === 0) {
+    const t = el('text', { x: 150, y: 48, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 10 }); t.textContent = 'Belum ada data analisa'; g.appendChild(t);
+  } else {
+    const scale = Math.max(10, ...vals.map((x) => Math.abs(x)));
+    const Y = (v) => 45 - Math.max(-1, Math.min(1, v / scale)) * 38;
+    let d = '', prev = -2;
+    for (let i = 0; i <= n; i++) {
+      if (lead[i] == null) continue;
+      d += (prev === i - 1 ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(lead[i]).toFixed(1) + ' '; prev = i;
+    }
+    g.appendChild(el('path', { d, fill: 'none', stroke: 'var(--seal)', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+    for (let i = 0; i <= n; i++) if (lead[i] != null && n < 80) g.appendChild(el('circle', { cx: X(i), cy: Y(lead[i]), r: 1.6, fill: 'var(--seal)' }));
+    const t1 = el('text', { x: 292, y: 11, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 8 }); t1.textContent = 'Hitam +' + Math.round(scale); g.appendChild(t1);
+    const t2 = el('text', { x: 292, y: 86, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 8 }); t2.textContent = 'Putih +' + Math.round(scale); g.appendChild(t2);
+  }
+  g.appendChild(el('line', { x1: X(idx), y1: 2, x2: X(idx), y2: 88, stroke: 'var(--text)', 'stroke-width': 1, 'stroke-dasharray': '3 2', opacity: 0.7 }));
+}
+
+function drawMistakes() {
+  const box = $('mlist'); box.innerHTML = '';
+  const { rec, states } = rv, lead = rec.an.lead, thr = rec.size === 19 ? 2 : 3;
+  const list = [];
+  for (let i = 1; i < states.length; i++) {
+    const m = states[i].moves[i - 1];
+    if (lead[i] == null || lead[i - 1] == null) continue;
+    const loss = m.color === 1 ? lead[i - 1] - lead[i] : lead[i] - lead[i - 1];
+    if (loss >= thr) list.push({ i, m, loss });
+  }
+  list.sort((a, b) => b.loss - a.loss);
+  if (!list.length) {
+    const d = document.createElement('div'); d.className = 'hint';
+    d.textContent = lead.some((x) => x != null) ? 'Tidak ada langkah dengan kerugian besar yang terdeteksi (atau analisa belum lengkap).' : 'Jalankan "Analisa semua" untuk melihat daftar ini.';
+    box.appendChild(d); return;
+  }
+  list.slice(0, 6).forEach(({ i, m, loss }) => {
+    const b = document.createElement('button');
+    const a = document.createElement('span'); a.textContent = '#' + i + ' ' + nameOf(m.color) + ' ' + (m.pass ? 'lewati' : coordName(m.r, m.c, rec.size));
+    const c = document.createElement('span'); c.className = 'loss'; c.textContent = '−' + fmt1(loss);
+    b.append(a, c); b.onclick = () => gotoIdx(i); box.appendChild(b);
+  });
+}
+
+function playFromHere() {
+  if (!rv) return;
+  maybeArchiveUnfinished();
+  const size = rv.rec.size, states = rv.states.slice(0, rv.idx + 1);
+  G = makeGame(size, states); G.vsAI = rv.rec.vsAI; G.ai = rv.rec.ai === 1 ? 1 : 2; settings.ai = G.ai; settings.size = size; settings.vsAI = G.vsAI; saveSettings();
+  syncControls(); saveCurrent();
+  showTab('play'); flash('Melanjutkan dari langkah ' + rv.idx + '.');
+}
+
+/* ---------------- Tema ---------------- */
+function applyTheme() {
+  const t = settings.theme;
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  $('themeBtn').textContent = 'Tema: ' + (t === 'auto' ? 'Auto' : t === 'light' ? 'Terang' : 'Gelap');
+}
+
+/* ---------------- Event ---------------- */
+$('tabPlay').onclick = () => showTab('play');
+$('tabHist').onclick = () => showTab('hist');
+$('tabRev').onclick = () => { if (rv) showTab('review'); };
+$('themeBtn').onclick = () => { settings.theme = { auto: 'light', light: 'dark', dark: 'auto' }[settings.theme] || 'auto'; saveSettings(); applyTheme(); };
+
+$('sizeGroup').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  newGame(parseInt(btn.dataset.size, 10));
+});
+$('sideGroup').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const ai = 3 - parseInt(btn.dataset.side, 10);
+  if (ai === G.ai) return;
+  settings.ai = ai; saveSettings(); newGame(G.size);
+});
+$('hintBtn').onclick = async () => {
+  const game = G, s = cur(); if (G.busy) return;
+  G.busy = 'Menganalisa…'; render();
+  try {
+    const res = await Bot.analyze(s.board, s.size, s.turn, s.koPoint, { moves: s.moves, koPos: s.koPos });
+    let sum = 0; res.own.forEach((row) => row.forEach((x) => (sum += x))); res.lead = sum - KOMI;
+    if (game === G && cur() === s) G.hint = { n: s.moves.length, res };
+  } catch (e) { console.error(e); flash('Saran gagal: ' + e.message); }
+  if (game === G) { G.busy = ''; render(); }
+};
+$('passBtn').onclick = () => { if (!(G.vsAI && cur().turn === G.ai)) doPass(); };
+$('undoBtn').onclick = doUndo;
+$('resignBtn').onclick = doResign;
+$('scoreBtn').onclick = () => { if (G.scoring) resumeGame(); else if (!G.gameOver) enterScoring(); };
+$('resetBtn').onclick = () => newGame(G.size);
+$('saveBtn').onclick = () => {
+  const rec = archiveGame(G.gameOver ? (G.resigned ? 'resigned' : 'finished') : 'unfinished');
+  if (rec) { flash('Game disimpan.'); openReview(rec.id); }
+};
+$('aiToggle').addEventListener('change', (e) => {
+  G.vsAI = e.target.checked; settings.vsAI = G.vsAI; saveSettings(); syncControls();
+  G.token++; G.thinking = false; flash(''); advance();
+});
+$('clearAllBtn').onclick = () => confirmClick($('clearAllBtn'), 'Yakin hapus semua?', () => {
+  games = []; persistGames(); if (rv) closeReview(); renderHistory(); flash('Semua game tersimpan dihapus.');
+  $('clearAllBtn').dataset.arm = ''; $('clearAllBtn').classList.remove('arm'); $('clearAllBtn').textContent = 'Hapus semua';
+});
+
+$('rvFirst').onclick = () => gotoIdx(0);
+$('rvPrev').onclick = () => gotoIdx(rv.idx - 1);
+$('rvNext').onclick = () => gotoIdx(rv.idx + 1);
+$('rvLast').onclick = () => gotoIdx(rv.states.length - 1);
+$('rvSlider').addEventListener('input', (e) => gotoIdx(parseInt(e.target.value, 10)));
+$('rvOne').onclick = () => analyzeOne(rv.idx);
+$('rvAll').onclick = analyzeAll;
+$('rvAuto').onchange = (e) => { rv.auto = e.target.checked; scheduleAuto(0); };
+$('rvOwn').onchange = (e) => { rv.showOwn = e.target.checked; render(); };
+$('rvCands').onchange = (e) => { rv.showCands = e.target.checked; render(); };
+$('rvPlayFrom').onclick = playFromHere;
+$('rvSgf').onclick = () => rv && downloadSgf(rv.rec);
+$('rvDel').onclick = () => confirmClick($('rvDel'), 'Yakin?', () => { const id = rv.rec.id; closeReview(); deleteGame(id); });
+$('graph').addEventListener('click', (e) => {
+  if (!rv) return;
+  const box = e.currentTarget.getBoundingClientRect(), n = rv.states.length - 1;
+  const x = ((e.clientX - box.left) / box.width) * 300;
+  gotoIdx(Math.round(((x - 10) / 280) * n));
+});
+document.addEventListener('keydown', (e) => {
+  if (tab !== 'review' || !rv || /INPUT|TEXTAREA/.test(e.target.tagName) && e.target.type !== 'range') return;
+  if (e.key === 'ArrowLeft') { gotoIdx(rv.idx - 1); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { gotoIdx(rv.idx + 1); e.preventDefault(); }
+  else if (e.key === 'Home') { gotoIdx(0); e.preventDefault(); }
+  else if (e.key === 'End') { gotoIdx(rv.states.length - 1); e.preventDefault(); }
+});
+window.addEventListener('pagehide', () => { if (G) { saveCurrent(); } });
+
+/* ---------------- Analisa profil pemain ---------------- */
+// Dihitung dari game melawan komputer yang tersimpan: kontak, tepi, tangkapan, hasil, dan (bila sudah dianalisa) kerugian poin per fase.
+function computeProfile() {
+  const P = { games: 0, done: 0, w: 0, l: 0, d: 0, resign: 0, moves: 0, contact: 0, early: 0, edge: 0, took: 0, lost: 0, analyzed: 0, aMoves: 0, aLoss: 0, mist: 0, ph: [[0, 0], [0, 0], [0, 0]] };
+  games.forEach((g) => {
+    if (!g.vsAI || !g.m || g.m.length < 6) return;
+    const states = replay(g.size, g.m); if (!states) return;
+    const me = g.ai === 1 ? 2 : 1, n = g.m.length, thr = g.size === 19 ? 2 : 3, edgeLine = g.size >= 13 ? 2 : 1, lead = g.an && g.an.lead;
+    P.games++;
+    let win = 0;
+    if (g.sc) win = g.sc.b > g.sc.w ? 1 : g.sc.w > g.sc.b ? 2 : 3;
+    else { const mt = /(Hitam|Putih) menang/.exec(g.result || ''); if (mt) win = mt[1] === 'Hitam' ? 1 : 2; }
+    if (win) { P.done++; if (win === 3) P.d++; else if (win === me) P.w++; else P.l++; }
+    if (g.result && g.result.indexOf(nameOf(me) + ' menyerah') === 0) P.resign++;
+    let used = false;
+    g.m.forEach(([color, r, c], i) => {
+      if (color !== me || r < 0) return;
+      const size = g.size, before = states[i].board;
+      P.moves++;
+      if (GoRules.neighbors(r, c, size).some(([a, b]) => before[a][b] === 3 - me)) P.contact++;
+      if (i < n * 0.6) { P.early++; if (Math.min(r, c, size - 1 - r, size - 1 - c) + 1 <= edgeLine) P.edge++; }
+      const a = lead ? lead[i] : null, b = lead ? lead[i + 1] : null;
+      if (a != null && b != null) {
+        const loss = Math.max(0, me === 1 ? a - b : b - a), ph = i < n * 0.33 ? 0 : i < n * 0.7 ? 1 : 2;
+        P.ph[ph][0] += loss; P.ph[ph][1]++; P.aLoss += loss; P.aMoves++; if (loss >= thr) P.mist++; used = true;
+      }
+    });
+    if (used) P.analyzed++;
+    const fin = states[states.length - 1];
+    P.took += me === 1 ? fin.capW : fin.capB; P.lost += me === 1 ? fin.capB : fin.capW;
+  });
+  return P;
+}
+function profileChar(P) {
+  if (P.moves < 20) return null;
+  const cR = P.contact / P.moves, eR = P.early ? P.edge / P.early : 0;
+  if (cR >= 0.5) return P.took >= P.lost ? ['Penyerang', 'Suka menekan dan bertarung langsung; sering berhasil menangkap batu lawan.'] : ['Petarung berani', 'Suka kontak langsung dengan lawan, tetapi sering kehilangan batu dalam pertarungan.'];
+  if (eR >= 0.25) return ['Penjaga tepi', 'Banyak bermain dekat tepi: aman, tetapi sulit menyaingi pengaruh lawan di tengah.'];
+  if (cR < 0.35) return ['Pembangun wilayah', 'Lebih suka mengembangkan area luas dan menghindari pertarungan.'];
+  return ['Seimbang', 'Perpaduan antara bertarung dan membangun wilayah.'];
+}
+function addMeter(box, label, pct, val) {
+  const m = document.createElement('div'); m.className = 'meter';
+  const a = document.createElement('span'); a.textContent = label; const b = document.createElement('b'); b.textContent = val;
+  const bar = document.createElement('div'); bar.className = 'mbar'; const i = document.createElement('i'); i.style.width = Math.max(2, Math.min(100, pct)) + '%';
+  bar.appendChild(i); m.append(a, b, bar); box.appendChild(m);
+}
+function fillList(id, items, empty) {
+  const u = $(id); u.textContent = '';
+  (items.length ? items : [empty]).forEach((t) => { const li = document.createElement('li'); li.textContent = t; u.appendChild(li); });
+}
+function renderProfile() {
+  const P = computeProfile(), ch = profileChar(P);
+  $('profName').textContent = settings.name; $('avHead').textContent = initial(settings.name);
+  $('profChar').textContent = ch ? ch[0] : 'Belum cukup data';
+  const tiles = $('profTiles'); tiles.textContent = '';
+  [[P.games, 'Game vs komputer'], [P.w + '–' + P.l + (P.d ? '–' + P.d : ''), P.d ? 'Menang–kalah–seri' : 'Menang–kalah'],
+   [P.done ? Math.round(100 * P.w / P.done) + '%' : '–', 'Persen menang'], [P.analyzed, 'Game dianalisa']].forEach(([v, t]) => {
+    const d = document.createElement('div'); d.className = 'tile';
+    const b = document.createElement('b'); b.textContent = v; const s = document.createElement('span'); s.textContent = t;
+    d.append(b, s); tiles.appendChild(d);
+  });
+  const box = $('profStyle'); box.textContent = '';
+  const n = P.moves, cR = n ? P.contact / n : 0, eR = P.early ? P.edge / P.early : 0;
+  if (!ch) {
+    box.textContent = 'Simpan minimal satu game melawan komputer (sedikitnya 20 langkahmu) untuk melihat karakter bermainmu.';
+  } else {
+    const t = document.createElement('div'); t.textContent = ch[1]; box.appendChild(t);
+    addMeter(box, 'Agresivitas (langkah kontak dengan batu lawan)', cR * 100, Math.round(cR * 100) + '%');
+    addMeter(box, 'Main dekat tepi (pembukaan–tengah)', eR * 100, Math.round(eR * 100) + '%');
+    if (P.took + P.lost > 0) addMeter(box, 'Tangkapan vs kehilangan batu', 100 * P.took / (P.took + P.lost), P.took + ' vs ' + P.lost);
+  }
+  const good = [], bad = [], tips = [];
+  const PH = ['pembukaan', 'pertengahan', 'akhir (yose)'];
+  const PHTIP = ['Pelajari pola pembukaan: ambil sudut, lalu sisi, dan hindari garis 1–2.', 'Latih membaca pertarungan: hitung nyawa dan cek hubungan antar kelompok sebelum menyerang.', 'Latih yose: ambil batas wilayah terbesar dulu dan jangan mengisi wilayah sendiri.'];
+  if (P.games) {
+    const wr = P.done ? P.w / P.done : null;
+    if (wr != null && P.done >= 2 && wr >= 0.5) good.push('Menang ' + P.w + ' dari ' + P.done + ' game yang selesai.');
+    if (P.took >= 3 && P.took > P.lost * 1.2) good.push('Lebih banyak menangkap batu (' + P.took + ') daripada kehilangan (' + P.lost + ').');
+    if (n >= 20 && P.lost === 0) good.push('Belum pernah kehilangan batu.');
+    if (P.aMoves >= 15 && P.aLoss / P.aMoves < 1) good.push('Langkah stabil: rata-rata kerugian ' + fmt1(P.aLoss / P.aMoves) + ' poin per langkah.');
+    if (P.games >= 2 && P.resign === 0) good.push('Pantang menyerah: belum pernah menyerah di tengah game.');
+    if (P.lost >= 3 && P.lost > P.took * 1.3) { bad.push('Sering kehilangan batu (' + P.lost + ' hilang, ' + P.took + ' tertangkap).'); tips.push('Latih membaca nyawa (liberty) dan hubungkan kelompok tipis sebelum menyerang.'); }
+    if (n >= 20 && eR >= 0.25) { bad.push('Terlalu sering bermain dekat tepi saat pembukaan dan tengah permainan.'); tips.push('Utamakan garis 3–4 dan sudut; mainkan tepi belakangan.'); }
+    if (n >= 20 && cR < 0.3) { bad.push('Jarang kontak dengan batu lawan, sehingga inisiatif mudah hilang.'); tips.push('Berani menempel dan menekan kelompok lawan yang lemah.'); }
+    if (P.games >= 2 && P.resign / P.games >= 0.3) { bad.push('Sering menyerah sebelum game selesai (' + P.resign + ' dari ' + P.games + ').'); tips.push('Lanjutkan sampai hitung skor; posisi yang tampak kalah sering masih bisa dikejar.'); }
+    if (wr != null && P.done >= 2 && wr < 0.4) bad.push('Kalah ' + P.l + ' dari ' + P.done + ' game yang selesai.');
+    if (P.aMoves >= 15) {
+      const avg = P.ph.map(([s, k]) => (k >= 4 ? s / k : null)), ok = [0, 1, 2].filter((i) => avg[i] != null);
+      if (ok.length) {
+        const w = ok.reduce((a, b) => (avg[b] > avg[a] ? b : a)), b = ok.reduce((a, c) => (avg[c] < avg[a] ? c : a));
+        if (avg[w] >= 0.5) { bad.push('Kerugian terbesar di fase ' + PH[w] + ' (' + fmt1(avg[w]) + ' poin per langkah).'); tips.push(PHTIP[w]); }
+        if (ok.length > 1 && b !== w) good.push('Fase terkuat: ' + PH[b] + ' (' + fmt1(avg[b]) + ' poin per langkah).');
+      }
+      if (P.mist / P.aMoves > 0.08) bad.push('Kesalahan besar muncul ' + P.mist + ' kali dari ' + P.aMoves + ' langkah yang dianalisa.');
+    } else tips.push('Buka tab Riwayat lalu "Analisa semua" pada game-mu agar fase dan jenis kesalahan terlihat di sini.');
+    if (!bad.length) bad.push('Belum terdeteksi kekurangan yang menonjol.');
+    if (!tips.length) tips.push('Pertahankan gayamu, lalu coba papan lebih besar atau warna yang berbeda.');
+  }
+  fillList('profGood', good, P.games ? 'Belum ada kelebihan yang menonjol; mainkan lebih banyak game.' : 'Belum ada data.');
+  fillList('profBad', bad, 'Belum ada data.');
+  fillList('profTips', tips, 'Belum ada data.');
+  const ph = $('profPhase'); ph.textContent = '';
+  if (P.aMoves >= 5) {
+    const avg = P.ph.map(([s, k]) => (k ? s / k : 0)), mx = Math.max(0.1, ...avg);
+    PH.forEach((nm, i) => { if (P.ph[i][1]) addMeter(ph, nm[0].toUpperCase() + nm.slice(1), 100 * avg[i] / mx, fmt1(avg[i]) + ' poin/langkah'); });
+  } else { const h = document.createElement('div'); h.className = 'hint'; h.textContent = 'Belum ada game yang dianalisa.'; ph.appendChild(h); }
+}
+$('profGoHist').onclick = () => showTab('hist');
+$('profGoPractice').onclick = () => startMode('practice');
+
+/* ---------------- Profil ---------------- */
+const initial = (s) => ((s || '').trim()[0] || '?').toUpperCase();
+const cleanName = (s, d) => s.replace(/\s+/g, ' ').trim().slice(0, 20) || d;
+function fillProfile() {
+  renderProfile();
+  $('inName').value = settings.name; $('inAi').value = settings.aiName;
+  $('avMe').textContent = initial(settings.name); $('avAi').textContent = initial(settings.aiName);
+}
+function saveProfile() {
+  settings.name = cleanName($('inName').value, 'Kamu'); settings.aiName = cleanName($('inAi').value, 'Komputer'); settings.named = true;
+  saveSettings(); fillProfile(); render();
+  $('profNote').textContent = 'Profil disimpan.';
+}
+$('inName').addEventListener('input', () => { $('avMe').textContent = initial($('inName').value); });
+$('inAi').addEventListener('input', () => { $('avAi').textContent = initial($('inAi').value); });
+['inName', 'inAi'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') saveProfile(); }));
+$('profSave').onclick = saveProfile;
+$('profReset').onclick = () => {
+  settings.name = 'Kamu'; settings.aiName = 'Komputer'; settings.named = false; saveSettings(); fillProfile(); render();
+  $('profNote').textContent = 'Nama dikembalikan ke awal.';
+};
+$('tabProf').onclick = () => showTab('prof');
+
+/* ---------------- Halaman awal ---------------- */
+function showHome() {
+  $('home').hidden = false; $('app').hidden = true;
+  $('homeProfile').textContent = settings.named ? 'Halo, ' + settings.name : 'Atur namamu';
+  $('homeHist').textContent = games.length ? games.length + ' game tersimpan — buka untuk menganalisa.' : 'Belum ada game tersimpan. Main dulu, lalu analisa di sini.';
+  window.scrollTo(0, 0);
+}
+function startMode(m) {
+  if (m === 'ai' && (G.practice || !G.vsAI)) { settings.vsAI = true; saveSettings(); newGame(G.size, false); }
+  if (m === 'practice' && !G.practice) newGame(G.size, true);
+  $('home').hidden = true; $('app').hidden = false;
+  showTab(m === 'analyze' ? 'hist' : 'play');
+  if (m !== 'analyze') advance();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.mode').forEach((b) => { b.onclick = () => startMode(b.dataset.mode); });
+$('homeBtn').onclick = showHome;
+$('homeProfile').onclick = () => { $('home').hidden = true; $('app').hidden = false; showTab('prof'); window.scrollTo(0, 0); };
+
+/* ---------------- Mulai ---------------- */
+(function boot() {
+  applyTheme();
+  if (!store.ok) $('saveNote').textContent = 'Penyimpanan browser tidak tersedia (mode privat?) — permainan hanya tersimpan selama halaman terbuka.';
+  const saved = store.get(KEY_CUR, null);
+  let restored = false;
+  if (saved && saved.v === 1) {
+    const states = replay(saved.size, saved.m || []);
+    if (states) {
+      G = makeGame(saved.size, states);
+      G.vsAI = !!saved.vsAI; G.ai = saved.ai === 1 ? 1 : 2; G.practice = !!saved.practice; G.startedAt = saved.startedAt || Date.now(); G.recId = saved.recId || null;
+      if (saved.end) {
+        G.gameOver = !!saved.end.gameOver; G.scoring = !!saved.end.scoring; G.result = saved.end.result || null;
+        G.resigned = saved.end.resigned || null; G.reason = saved.end.reason || null;
+        if (G.scoring) G.dead = saved.end.dead ? deadMapFrom(saved.size, saved.end.dead) : deadMapFrom(saved.size, []);
+      }
+      restored = true;
+    }
+  }
+  if (!restored) G = makeGame(settings.size || 9);
+  syncControls(); renderHistory(); showTab('play'); showHome();
+})();
+</script>
+</body>
+</html>
